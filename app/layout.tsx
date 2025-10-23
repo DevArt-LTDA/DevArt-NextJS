@@ -7,7 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DevArt",
   description: "Tu espacio para el arte y el desarrollo",
-  icons: { icon: "/DevArt.png" },
+  // icons: { icon: "/DevArt.png" },
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
             style={{ position: "absolute", left: 50, top: 10 }}
           >
             {/* usa <img> si no quieres next/image */}
-            <img src="/IconDevArt.png" alt="DevArt Logo" width={50} />
+            {/* <img src="/IconDevArt.png" alt="DevArt Logo" width={50} /> */}
           </div>
 
           <Link href="/">Home</Link>
@@ -35,14 +35,14 @@ export default function RootLayout({
 
           <div className="cart-icon">
             <Link href="/cart">
-              <img src="/icon-cart.png" alt="Cart" width={30} />
+              {/* <img src="/icon-cart.png" alt="Cart" width={30} /> */}
               <span className="cart-count">0</span>
             </Link>
           </div>
 
           <div className="Login-icon">
             <Link href="/login">
-              <img src="/Login-user-icon.png" alt="Login" width={30} />
+              {/* <img src="/Login-user-icon.png" alt="Login" width={30} /> */}
               <span
                 className="Login-text"
                 style={{ position: "relative", top: -10 }}
