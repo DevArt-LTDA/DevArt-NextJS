@@ -1,7 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
-import CartInit from "./ui/CartInit";
+import CartInit from "./ui/cartInit";
 import "./globals.css";
 
 export const metadata: Metadata = {
