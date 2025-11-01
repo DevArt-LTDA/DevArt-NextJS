@@ -1,13 +1,15 @@
-// app/layout.tsx
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import CartInit from "./ui/CartInit";
+import CartInit from "./ui/cartInit";
+import Cart from "./src/cart.jsx";
 import "./globals.css";
+import Icon from "./icon/IconDevArt.png";
+import CartIcon from "./icon/icon-cart.png";
 
 export const metadata: Metadata = {
   title: "DevArt",
   description: "Tu espacio para el arte y el desarrollo",
-  // icons: { icon: "/DevArt.png" },
 };
 
 export default function RootLayout({
@@ -23,8 +25,7 @@ export default function RootLayout({
             className="logo"
             style={{ position: "absolute", left: 50, top: 10 }}
           >
-            {/* usa <img> si no quieres next/image */}
-            {/* <img src="/IconDevArt.png" alt="DevArt Logo" width={50} /> */}
+            <Image src={Icon} alt="DevArt Logo" width={50} />
           </div>
 
           <Link href="/">Home</Link>
@@ -34,15 +35,15 @@ export default function RootLayout({
           <Link href="/contact">Contacto</Link>
 
           <div className="cart-icon">
-            <Link href="/cart">
-              {/* <img src="/icon-cart.png" alt="Cart" width={30} /> */}
+            <Link href="./src/cart.jsx">
+              <Image src={CartIcon} alt="Cart" width={30} />
               <span className="cart-count">0</span>
             </Link>
           </div>
 
           <div className="Login-icon">
             <Link href="/login">
-              {/* <img src="/Login-user-icon.png" alt="Login" width={30} /> */}
+              <img src="/Login-user-icon.png" alt="Login" width={30} />
               <span
                 className="Login-text"
                 style={{ position: "relative", top: -10 }}
