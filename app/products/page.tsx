@@ -3,12 +3,6 @@
 
 import "../css/products.css";
 
-export const metadata = {
-  title: "DevArt - Productos",
-  description:
-    "DevArt - Productos y servicios de tecnología avanzada para impulsar tu negocio",
-};
-
 type Producto = {
   id: number;
   nombre: string;
@@ -62,7 +56,12 @@ function CLP(n: number) {
 
 export default function ProductsPage() {
   function agregarAlCarrito(p: Producto) {
-    let cart: Array<{ id: number; nombre: string; precio: number; quantity: number }> = [];
+    let cart: Array<{
+      id: number;
+      nombre: string;
+      precio: number;
+      quantity: number;
+    }> = [];
     try {
       cart = JSON.parse(localStorage.getItem("cart") || "[]");
     } catch {}
@@ -86,7 +85,8 @@ export default function ProductsPage() {
       <div className="TituloProductos">
         <h1>Nuestros Productos</h1>
         <p>
-          Descubre nuestros servicios de tecnología avanzada diseñados para impulsar tu negocio
+          Descubre nuestros servicios de tecnología avanzada diseñados para
+          impulsar tu negocio
         </p>
       </div>
 
@@ -112,7 +112,10 @@ export default function ProductsPage() {
                 ))}
               </div>
 
-              <button className="add-to-cart" onClick={() => agregarAlCarrito(p)}>
+              <button
+                className="add-to-cart"
+                onClick={() => agregarAlCarrito(p)}
+              >
                 Agregar al carrito
               </button>
             </div>
