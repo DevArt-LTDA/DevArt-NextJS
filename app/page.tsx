@@ -1,5 +1,5 @@
 import Image from "next/image";
-import bigdata from "./img/ChatGPTbigdata.png"; 
+import bigdata from "./img/ChatGPTbigdata.png";
 import webservice from "./img/ChatGPTdevweb.png";
 import analisisdata from "./img/ChatGPTanalisisdata.png";
 export default function Page() {
@@ -12,15 +12,15 @@ export default function Page() {
 
       <div className="Carrusel">
         <div className="carousel-item">
-        <Image src={bigdata} alt="DevArt Image 1" priority />
-          <div className="caption">Servicio de BIGDATA</div>
+          <Image src={bigdata} alt="DevArt Image 1" priority />
+          <div className="caption">Servicio de BIGDATA.</div>
         </div>
         <div className="carousel-item">
           <Image src={webservice} alt="DevArt Image 2" />
           <div className="caption">Desarrollo Web Art-Técnico</div>
         </div>
         <div className="carousel-item">
-        <Image src={analisisdata} alt="DevArt Image 3" />
+          <Image src={analisisdata} alt="DevArt Image 3" />
           <div className="caption">Analisis de Datos</div>
         </div>
       </div>
