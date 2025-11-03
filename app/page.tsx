@@ -1,7 +1,4 @@
-// app/page.tsx
 import Image from "next/image";
-
-// imports estáticos desde app/img/*
 import bigdata from "./img/ChatGPTbigdata.png";
 import devweb from "./img/ChatGPTdevweb.png";
 import analisis from "./img/ChatGPTanalisisdata.png";

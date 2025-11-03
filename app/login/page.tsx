@@ -1,13 +1,9 @@
-// app/src/login.tsx
 "use client";
 
 import "../css/login.css";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-function esEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
+import { validarFormulario } from "../components/login";
 
 export default function Login() {
   const router = useRouter();
@@ -26,28 +22,17 @@ export default function Login() {
     const password = String(fd.get("password") || "");
     const remember = fd.get("remember") === "on";
 
-    // Validación: email o usuario
-    if (email === "") {
-      setErrEmail("Ingresa email o usuario");
-    } else if (email.includes("@") && !esEmail(email)) {
-      setErrEmail("Email inválido");
-    } else if (!email.includes("@") && email.length < 3) {
-      setErrEmail("Usuario mínimo 3 caracteres");
-    } else {
-      setErrEmail("");
-    }
-
-    if (password.length < 6) {
-      setErrPw("Mínimo 6 caracteres");
-    } else {
-      setErrPw("");
-    }
-
-    if (errEmail || errPw || email === "" || password.length < 6) return;
+    const {
+      errEmail: e1,
+      errPw: e2,
+      ok: okForm,
+    } = validarFormulario(email, password);
+    setErrEmail(e1);
+    setErrPw(e2);
+    if (!okForm) return;
 
     setSending(true);
-
-    await new Promise((r) => setTimeout(r, 600)); // simulación
+    await new Promise((r) => setTimeout(r, 600));
 
     if (remember) {
       try {
@@ -60,10 +45,7 @@ export default function Login() {
 
     setOk(true);
     setSending(false);
-
-    setTimeout(() => {
-      router.push("/");
-    }, 1200);
+    setTimeout(() => router.push("/"), 1200);
   }
 
   return (
