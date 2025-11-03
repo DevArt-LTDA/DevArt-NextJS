@@ -1,6 +1,7 @@
 "use client";
 
 import "../css/register.css";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { validarRegistro, evaluarPassword } from "../components/register";
@@ -303,10 +304,9 @@ export default function RegisterPage() {
               }
             />
             <span className="checkmark" />
-            Acepto los{" "}
-            <a href="#" className="terms-link">
+            <span className="terms-link" role="link" tabIndex={0}>
               términos y condiciones
-            </a>
+            </span>
           </label>
           <div
             id="err_terms"
@@ -330,14 +330,14 @@ export default function RegisterPage() {
         </button>
 
         <div className="login-link">
-          ¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a>
+          ¿Ya tienes cuenta? <Link href="/login">Inicia sesión aquí</Link>
         </div>
       </form>
 
       <div className="home-link">
-        <a href="/" className="home-btn">
+        <Link href="/" className="home-btn">
           ← Volver al inicio
-        </a>
+        </Link>
       </div>
     </div>
   );
