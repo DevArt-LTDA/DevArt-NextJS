@@ -140,6 +140,35 @@ body {
   animation: shake 0.5s;
 }
 
+/* errores visibles */
+.form-group.invalid input,
+input.error {
+  border-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.05);
+}
+.error-message {
+  display: none;
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.error-message.show {
+  display: block;
+}
+
+.success-message {
+  display: none;
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid rgba(39, 174, 96, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.success-message.show {
+  display: block;
+}
+
 /* ===============================
         ANIMACIONES
      =============================== */

@@ -3,7 +3,7 @@
 import "../css/login.css";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validarFormulario } from "../components/login";
+import { validarFormulario, autenticarLocal } from "../components/login";
 
 export default function Login() {
   const router = useRouter();
@@ -13,27 +13,52 @@ export default function Login() {
   const [errEmail, setErrEmail] = useState("");
   const [errPw, setErrPw] = useState("");
 
+  function focusField(id: "email" | "password") {
+    const el = document.getElementById(id) as HTMLElement | null;
+    if (el) el.focus();
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (sending) return;
+
+    // limpia errores previos
+    setErrEmail("");
+    setErrPw("");
 
     const fd = new FormData(e.currentTarget);
     const email = String(fd.get("email") || "").trim();
     const password = String(fd.get("password") || "");
     const remember = fd.get("remember") === "on";
 
-    const {
-      errEmail: e1,
-      errPw: e2,
-      ok: okForm,
-    } = validarFormulario(email, password);
-    setErrEmail(e1);
-    setErrPw(e2);
-    if (!okForm) return;
+    // 1) validaciones de formato
+    const v = validarFormulario(email, password);
+    setErrEmail(v.errEmail);
+    setErrPw(v.errPw);
+    if (!v.ok) {
+      if (v.errEmail) focusField("email");
+      else if (v.errPw) focusField("password");
+      return;
+    }
 
     setSending(true);
-    await new Promise((r) => setTimeout(r, 600));
 
+    // 2) autenticación local (contra lo guardado al registrar)
+    const auth = await autenticarLocal(email, password);
+    if (auth === "no_cuenta") {
+      setSending(false);
+      setErrEmail("Cuenta no existe");
+      focusField("email");
+      return;
+    }
+    if (auth === "pw_incorrecta") {
+      setSending(false);
+      setErrPw("Contraseña incorrecta");
+      focusField("password");
+      return;
+    }
+
+    // 3) éxito
     if (remember) {
       try {
         localStorage.setItem(
@@ -45,7 +70,7 @@ export default function Login() {
 
     setOk(true);
     setSending(false);
-    setTimeout(() => router.push("/"), 1200);
+    setTimeout(() => router.push("/"), 800);
   }
 
   return (
@@ -56,11 +81,12 @@ export default function Login() {
       </div>
 
       {ok && (
-        <div className="success-message">Login exitoso. Redirigiendo…</div>
+        <div className="success-message show">Login exitoso. Redirigiendo…</div>
       )}
 
       <form id="loginForm" onSubmit={onSubmit} noValidate>
-        <div className="form-group">
+        {/* USER / EMAIL */}
+        <div className={`form-group ${errEmail ? "invalid" : ""}`}>
           <label htmlFor="email">Email o Usuario</label>
           <input
             type="text"
@@ -68,11 +94,19 @@ export default function Login() {
             name="email"
             autoComplete="email"
             required
+            className={errEmail ? "error" : ""}
+            aria-invalid={!!errEmail}
           />
-          {errEmail && <div className="error-message">{errEmail}</div>}
+          <div
+            className={`error-message ${errEmail ? "show" : ""}`}
+            aria-live="polite"
+          >
+            {errEmail}
+          </div>
         </div>
 
-        <div className="form-group">
+        {/* PASSWORD */}
+        <div className={`form-group ${errPw ? "invalid" : ""}`}>
           <label htmlFor="password">Contraseña</label>
           <div className="password-wrap">
             <input
@@ -81,6 +115,8 @@ export default function Login() {
               name="password"
               autoComplete="current-password"
               required
+              className={errPw ? "error" : ""}
+              aria-invalid={!!errPw}
             />
             <button
               type="button"
@@ -91,7 +127,12 @@ export default function Login() {
               {showPw ? "Ocultar" : "Mostrar"}
             </button>
           </div>
-          {errPw && <div className="error-message">{errPw}</div>}
+          <div
+            className={`error-message ${errPw ? "show" : ""}`}
+            aria-live="polite"
+          >
+            {errPw}
+          </div>
         </div>
 
         <div className="remember-forgot">
