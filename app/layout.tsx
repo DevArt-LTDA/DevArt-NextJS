@@ -1,5 +1,3 @@
-// app/layout.tsx
-import type { Metadata } from "next";
 import Link from "next/link";
 import CartInit from "./ui/cartInit";
 import "./globals.css";
@@ -16,9 +14,7 @@ export default function RootLayout({
           <div
             className="logo"
             style={{ position: "absolute", left: 50, top: 10 }}
-          >
-            {/* <img src="/IconDevArt.png" alt="DevArt Logo" width={50} /> */}
-          </div>
+          ></div>
 
           <Link href="/">Home</Link>
           <Link href="/products">Productos</Link>
