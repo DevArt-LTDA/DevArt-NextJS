@@ -4,12 +4,6 @@ import Link from "next/link";
 import CartInit from "./ui/cartInit";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "DevArt",
-  description: "Tu espacio para el arte y el desarrollo",
-  // icons: { icon: "/DevArt.png" },
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -23,14 +17,13 @@ export default function RootLayout({
             className="logo"
             style={{ position: "absolute", left: 50, top: 10 }}
           >
-            {/* usa <img> si no quieres next/image */}
             {/* <img src="/IconDevArt.png" alt="DevArt Logo" width={50} /> */}
           </div>
 
           <Link href="/">Home</Link>
           <Link href="/products">Productos</Link>
           <Link href="/about">Nosotros</Link>
-          <Link href="/blog">Blog</Link>
+          <Link href="/blogs">Blog</Link>
           <Link href="/contact">Contacto</Link>
 
           <div className="cart-icon">
@@ -73,7 +66,6 @@ export default function RootLayout({
           </div>
         </footer>
 
-        {/* Inicializa lógica global del carrito */}
         <CartInit />
       </body>
     </html>

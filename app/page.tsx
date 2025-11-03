@@ -1,4 +1,11 @@
 // app/page.tsx
+import Image from "next/image";
+
+// imports estáticos desde app/img/*
+import bigdata from "./img/ChatGPTbigdata.png";
+import devweb from "./img/ChatGPTdevweb.png";
+import analisis from "./img/ChatGPTanalisisdata.png";
+
 export default function Page() {
   return (
     <main className="container">
@@ -9,16 +16,34 @@ export default function Page() {
 
       <div className="Carrusel">
         <div className="carousel-item">
-          <img src="/ChatGPTbigdata.png" alt="DevArt Image 1" />
+          <Image
+            src={bigdata}
+            alt="Servicio de BIGDATA"
+            width={800}
+            height={450}
+            priority
+          />
           <div className="caption">Servicio de BIGDATA</div>
         </div>
+
         <div className="carousel-item">
-          <img src="/ChatGPTdevweb.png" alt="DevArt Image 2" />
+          <Image
+            src={devweb}
+            alt="Desarrollo Web Art-Técnico"
+            width={800}
+            height={450}
+          />
           <div className="caption">Desarrollo Web Art-Técnico</div>
         </div>
+
         <div className="carousel-item">
-          <img src="/ChatGPTanalisisdata.png" alt="DevArt Image 3" />
-          <div className="caption">Analisis de Datos</div>
+          <Image
+            src={analisis}
+            alt="Análisis de Datos"
+            width={800}
+            height={450}
+          />
+          <div className="caption">Análisis de Datos</div>
         </div>
       </div>
     </main>
