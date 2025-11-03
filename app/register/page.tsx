@@ -42,7 +42,7 @@ export default function RegisterPage() {
     };
 
     const { ok, errs } = validarRegistro(data);
-    setErrs(errs as any);
+    setErrs(errs);
     if (!ok) return;
 
     setSending(true);
