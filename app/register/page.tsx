@@ -5,12 +5,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { validarRegistro, evaluarPassword } from "../components/register";
 
+type Errs = Record<string, string>;
+
 export default function RegisterPage() {
   const router = useRouter();
 
   const [sending, setSending] = useState(false);
-  const [ok, setOk] = useState(false);
-  const [errs, setErrs] = useState<Record<string, string>>({});
+  const [okMsg, setOkMsg] = useState(false);
+  const [errs, setErrs] = useState<Errs>({});
   const [pwScore, setPwScore] = useState(0);
   const [pwLabel, setPwLabel] = useState("Fuerza de contraseña");
 
@@ -26,11 +28,8 @@ export default function RegisterPage() {
     );
   }
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (sending) return;
-
-    const fd = new FormData(e.currentTarget);
+  function validarAll(form: HTMLFormElement) {
+    const fd = new FormData(form);
     const data = {
       fullName: String(fd.get("fullName") || ""),
       email: String(fd.get("email") || ""),
@@ -40,28 +39,59 @@ export default function RegisterPage() {
       birthDate: String(fd.get("birthDate") || ""),
       terms: fd.get("terms") === "on",
     };
-
     const { ok, errs } = validarRegistro(data);
-    setErrs(errs);
-    if (!ok) return;
+    setErrs(errs as Errs);
+    return ok;
+  }
+
+  function focusFirstError(e: Errs) {
+    const order = [
+      "fullName",
+      "email",
+      "username",
+      "password",
+      "confirmPassword",
+      "birthDate",
+      "terms",
+    ];
+    const first = order.find((k) => e[k]);
+    if (!first) return;
+    const el = document.getElementById(first);
+    if (el instanceof HTMLElement) el.focus();
+  }
+
+  function validarCampo(_: string, form: HTMLFormElement) {
+    validarAll(form);
+  }
+
+  async function onSubmit(ev: React.FormEvent<HTMLFormElement>) {
+    ev.preventDefault();
+    if (sending) return;
+
+    const ok = validarAll(ev.currentTarget);
+    if (!ok) {
+      focusFirstError(errs);
+      return;
+    }
 
     setSending(true);
-
     await new Promise((r) => setTimeout(r, 700));
+
     try {
+      const fd = new FormData(ev.currentTarget);
       localStorage.setItem(
         "devart_user_reg",
         JSON.stringify({
-          user: data.username,
-          email: data.email,
+          user: String(fd.get("username") || ""),
+          email: String(fd.get("email") || ""),
           ts: Date.now(),
         })
       );
     } catch {}
 
-    setOk(true);
+    setOkMsg(true);
     setSending(false);
-    setTimeout(() => router.push("/login"), 200);
+    router.push("/login?registered=1");
   }
 
   return (
@@ -71,12 +101,15 @@ export default function RegisterPage() {
         <p>Crea tu cuenta y comienza tu viaje</p>
       </div>
 
-      {ok && (
-        <div className="success-message">Registro exitoso. Redirigiendo…</div>
+      {okMsg && (
+        <div className="success-message" style={{ display: "block" }}>
+          Registro exitoso. Redirigiendo…
+        </div>
       )}
 
       <form id="registerForm" onSubmit={onSubmit} noValidate>
-        <div className="form-group">
+        {/* Nombre */}
+        <div className={`form-group ${errs.fullName ? "invalid" : ""}`}>
           <label htmlFor="fullName">Nombre Completo</label>
           <input
             type="text"
@@ -84,13 +117,28 @@ export default function RegisterPage() {
             name="fullName"
             autoComplete="name"
             required
+            className={errs.fullName ? "error" : ""}
+            aria-invalid={!!errs.fullName}
+            aria-describedby="err_fullName"
+            onBlur={(e) => validarCampo("fullName", e.currentTarget.form!)}
+            onInput={(e) =>
+              validarCampo(
+                "fullName",
+                (e.currentTarget as HTMLInputElement).form!
+              )
+            }
           />
-          {errs.fullName && (
-            <div className="error-message">{errs.fullName}</div>
-          )}
+          <div
+            id="err_fullName"
+            className={`error-message ${errs.fullName ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.fullName}
+          </div>
         </div>
 
-        <div className="form-group">
+        {/* Email */}
+        <div className={`form-group ${errs.email ? "invalid" : ""}`}>
           <label htmlFor="email">Correo Electrónico</label>
           <input
             type="email"
@@ -98,11 +146,25 @@ export default function RegisterPage() {
             name="email"
             autoComplete="email"
             required
+            className={errs.email ? "error" : ""}
+            aria-invalid={!!errs.email}
+            aria-describedby="err_email"
+            onBlur={(e) => validarCampo("email", e.currentTarget.form!)}
+            onInput={(e) =>
+              validarCampo("email", (e.currentTarget as HTMLInputElement).form!)
+            }
           />
-          {errs.email && <div className="error-message">{errs.email}</div>}
+          <div
+            id="err_email"
+            className={`error-message ${errs.email ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.email}
+          </div>
         </div>
 
-        <div className="form-group">
+        {/* Usuario */}
+        <div className={`form-group ${errs.username ? "invalid" : ""}`}>
           <label htmlFor="username">Nombre de Usuario</label>
           <input
             type="text"
@@ -110,13 +172,28 @@ export default function RegisterPage() {
             name="username"
             autoComplete="username"
             required
+            className={errs.username ? "error" : ""}
+            aria-invalid={!!errs.username}
+            aria-describedby="err_username"
+            onBlur={(e) => validarCampo("username", e.currentTarget.form!)}
+            onInput={(e) =>
+              validarCampo(
+                "username",
+                (e.currentTarget as HTMLInputElement).form!
+              )
+            }
           />
-          {errs.username && (
-            <div className="error-message">{errs.username}</div>
-          )}
+          <div
+            id="err_username"
+            className={`error-message ${errs.username ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.username}
+          </div>
         </div>
 
-        <div className="form-group">
+        {/* Password */}
+        <div className={`form-group ${errs.password ? "invalid" : ""}`}>
           <label htmlFor="password">Contraseña</label>
           <input
             type="password"
@@ -124,18 +201,33 @@ export default function RegisterPage() {
             name="password"
             autoComplete="new-password"
             required
-            onInput={(e) => onPwInput((e.target as HTMLInputElement).value)}
+            className={errs.password ? "error" : ""}
+            aria-invalid={!!errs.password}
+            aria-describedby="err_password"
+            onBlur={(e) => validarCampo("password", e.currentTarget.form!)}
+            onInput={(e) => {
+              onPwInput((e.target as HTMLInputElement).value);
+              validarCampo(
+                "password",
+                (e.currentTarget as HTMLInputElement).form!
+              );
+            }}
           />
-          {errs.password && (
-            <div className="error-message">{errs.password}</div>
-          )}
+          <div
+            id="err_password"
+            className={`error-message ${errs.password ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.password}
+          </div>
           <div className="password-strength">
             <div className="strength-bar" data-score={pwScore} />
             <span className="strength-text">{pwLabel}</span>
           </div>
         </div>
 
-        <div className="form-group">
+        {/* Confirmación */}
+        <div className={`form-group ${errs.confirmPassword ? "invalid" : ""}`}>
           <label htmlFor="confirmPassword">Confirmar Contraseña</label>
           <input
             type="password"
@@ -143,30 +235,86 @@ export default function RegisterPage() {
             name="confirmPassword"
             autoComplete="new-password"
             required
+            className={errs.confirmPassword ? "error" : ""}
+            aria-invalid={!!errs.confirmPassword}
+            aria-describedby="err_confirmPassword"
+            onBlur={(e) =>
+              validarCampo("confirmPassword", e.currentTarget.form!)
+            }
+            onInput={(e) =>
+              validarCampo(
+                "confirmPassword",
+                (e.currentTarget as HTMLInputElement).form!
+              )
+            }
           />
-          {errs.confirmPassword && (
-            <div className="error-message">{errs.confirmPassword}</div>
-          )}
+          <div
+            id="err_confirmPassword"
+            className={`error-message ${errs.confirmPassword ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.confirmPassword}
+          </div>
         </div>
 
-        <div className="form-group">
+        {/* Fecha */}
+        <div className={`form-group ${errs.birthDate ? "invalid" : ""}`}>
           <label htmlFor="birthDate">Fecha de Nacimiento</label>
-          <input type="date" id="birthDate" name="birthDate" required />
-          {errs.birthDate && (
-            <div className="error-message">{errs.birthDate}</div>
-          )}
+          <input
+            type="date"
+            id="birthDate"
+            name="birthDate"
+            required
+            className={errs.birthDate ? "error" : ""}
+            aria-invalid={!!errs.birthDate}
+            aria-describedby="err_birthDate"
+            onBlur={(e) => validarCampo("birthDate", e.currentTarget.form!)}
+            onInput={(e) =>
+              validarCampo(
+                "birthDate",
+                (e.currentTarget as HTMLInputElement).form!
+              )
+            }
+          />
+          <div
+            id="err_birthDate"
+            className={`error-message ${errs.birthDate ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.birthDate}
+          </div>
         </div>
 
-        <div className="terms-conditions">
-          <label className="checkbox-container">
-            <input type="checkbox" id="terms" name="terms" required />
+        {/* Términos */}
+        <div className={`terms-conditions ${errs.terms ? "invalid" : ""}`}>
+          <label className="checkbox-container" htmlFor="terms">
+            <input
+              type="checkbox"
+              id="terms"
+              name="terms"
+              required
+              aria-invalid={!!errs.terms}
+              aria-describedby="err_terms"
+              onChange={(e) =>
+                validarCampo(
+                  "terms",
+                  (e.currentTarget as HTMLInputElement).form!
+                )
+              }
+            />
             <span className="checkmark" />
             Acepto los{" "}
             <a href="#" className="terms-link">
               términos y condiciones
             </a>
           </label>
-          {errs.terms && <div className="error-message">{errs.terms}</div>}
+          <div
+            id="err_terms"
+            className={`error-message ${errs.terms ? "show" : ""}`}
+            role="alert"
+          >
+            {errs.terms}
+          </div>
         </div>
 
         <button
@@ -187,7 +335,7 @@ export default function RegisterPage() {
       </form>
 
       <div className="home-link">
-        <a href="/page.tsx" className="home-btn">
+        <a href="/" className="home-btn">
           ← Volver al inicio
         </a>
       </div>
