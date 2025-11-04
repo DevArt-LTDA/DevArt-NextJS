@@ -8,11 +8,42 @@ import { validarRegistro, evaluarPassword } from "../components/register";
 
 type Errs = Record<string, string>;
 
+/* ==== almacenamiento seguro con fallback ==== */
+function isStorageAvailable(kind: "localStorage" | "sessionStorage") {
+  try {
+    const s = window[kind];
+    const k = "__test__";
+    s.setItem(k, "1");
+    s.removeItem(k);
+    return true;
+  } catch {
+    return false;
+  }
+}
+const MEM = new Map<string, string>();
+function safeSet(key: string, val: string): "local" | "session" | "memory" {
+  try {
+    if (isStorageAvailable("localStorage")) {
+      localStorage.setItem(key, val);
+      return "local";
+    }
+  } catch {}
+  try {
+    if (isStorageAvailable("sessionStorage")) {
+      sessionStorage.setItem(key, val);
+      return "session";
+    }
+  } catch {}
+  MEM.set(key, val);
+  return "memory";
+}
+
 export default function RegisterPage() {
   const router = useRouter();
 
   const [sending, setSending] = useState(false);
   const [okMsg, setOkMsg] = useState(false);
+  const [warnStore, setWarnStore] = useState<string | null>(null);
   const [errs, setErrs] = useState<Errs>({});
   const [pwScore, setPwScore] = useState(0);
   const [pwLabel, setPwLabel] = useState("Fuerza de contraseña");
@@ -42,7 +73,7 @@ export default function RegisterPage() {
     };
     const { ok, errs } = validarRegistro(data);
     setErrs(errs as Errs);
-    return ok;
+    return { ok, errs, data };
   }
 
   function focusFirstError(e: Errs) {
@@ -69,26 +100,33 @@ export default function RegisterPage() {
     ev.preventDefault();
     if (sending) return;
 
-    const ok = validarAll(ev.currentTarget);
+    const form = ev.currentTarget as HTMLFormElement;
+    const { ok, errs: e } = validarAll(form);
     if (!ok) {
-      focusFirstError(errs);
+      focusFirstError(e as Errs);
       return;
     }
 
-    setSending(true);
-    await new Promise((r) => setTimeout(r, 700));
+    // Toma los datos ANTES del await
+    const fd = new FormData(form);
+    const payload = {
+      user: String(fd.get("username") || ""),
+      email: String(fd.get("email") || ""),
+      pwd: String(fd.get("password") || ""), // <-- CLAVE: guarda la contraseña
+      ts: Date.now(),
+    };
 
-    try {
-      const fd = new FormData(ev.currentTarget);
-      localStorage.setItem(
-        "devart_user_reg",
-        JSON.stringify({
-          user: String(fd.get("username") || ""),
-          email: String(fd.get("email") || ""),
-          ts: Date.now(),
-        })
+    setSending(true);
+    await new Promise((r) => setTimeout(r, 700)); // simula API
+
+    const backend = safeSet("devart_user_reg", JSON.stringify(payload));
+    if (backend !== "local") {
+      setWarnStore(
+        backend === "session"
+          ? "Aviso: localStorage bloqueado. Guardado en sessionStorage."
+          : "Aviso: almacenamiento bloqueado. Guardado temporalmente en memoria."
       );
-    } catch {}
+    }
 
     setOkMsg(true);
     setSending(false);
@@ -101,6 +139,12 @@ export default function RegisterPage() {
         <h1>Únete a DevArt</h1>
         <p>Crea tu cuenta y comienza tu viaje</p>
       </div>
+
+      {warnStore && (
+        <div className="banner-warn" role="status" aria-live="polite">
+          {warnStore}
+        </div>
+      )}
 
       {okMsg && (
         <div className="success-message" style={{ display: "block" }}>

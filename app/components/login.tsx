@@ -1,61 +1,61 @@
 // app/components/login.ts
 
-// ===== helpers básicos
-export function esEmail(v: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-export function validarFormulario(userOrEmail: string, password: string) {
+export function validarFormulario(emailOrUser: string, password: string) {
   let errEmail = "";
   let errPw = "";
+  const v = emailOrUser.trim();
 
-  const u = userOrEmail.trim();
-  if (!u) errEmail = "Ingresa email o usuario";
-  else if (u.includes("@") && !esEmail(u)) errEmail = "Email inválido";
+  if (!v) errEmail = "Ingresa email o usuario";
+  else if (v.includes("@") && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
+    errEmail = "Email inválido";
 
-  if (!password || password.length < 6) errPw = "Mínimo 6 caracteres";
+  if (password.length < 6) errPw = "Mínimo 6 caracteres";
 
-  return { errEmail, errPw, ok: !errEmail && !errPw };
+  return { ok: !errEmail && !errPw, errEmail, errPw };
 }
 
-// ===== hash SHA-256 con WebCrypto
-export async function hash(text: string): Promise<string> {
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+type AuthResult = "ok" | "no_cuenta" | "pw_incorrecta";
+
+// normaliza strings (quita espacios y NBSP alrededor)
+function norm(s: unknown): string {
+  if (s == null) return "";
+  return String(s)
+    .replace(/\u00A0/g, " ")
+    .trim();
 }
 
-/**
- * Autenticación local contra lo guardado en register.
- * Espera en localStorage clave "devart_user_auth":
- *   { username: string, email: string, passHash: string }
- */
 export async function autenticarLocal(
-  userOrEmail: string,
+  emailOrUser: string,
   password: string
-): Promise<"ok" | "no_cuenta" | "pw_incorrecta"> {
-  let raw = null;
+): Promise<AuthResult> {
   try {
-    raw = localStorage.getItem("devart_user_auth");
-  } catch {}
+    const raw = localStorage.getItem("devart_user_reg");
+    if (!raw) return "no_cuenta";
 
-  if (!raw) return "no_cuenta";
+    const rec = JSON.parse(raw) as {
+      user?: string;
+      email?: string;
+      pwd?: string; // nuevo
+      password?: string; // compat
+      pass?: string; // compat
+    };
 
-  let rec: { username: string; email: string; passHash: string } | null = null;
-  try {
-    rec = JSON.parse(raw);
+    const idIn = norm(emailOrUser).toLowerCase();
+    const user = norm(rec.user).toLowerCase();
+    const mail = norm(rec.email).toLowerCase();
+
+    const match = idIn === user || idIn === mail;
+    if (!match) return "no_cuenta";
+
+    // toma la contraseña desde cualquiera de las posibles claves
+    const saved = norm(rec.pwd || rec.password || rec.pass);
+    const input = String(password); // NO cambiar mayúsculas/minúsculas
+
+    if (!saved) return "pw_incorrecta"; // registro sin contraseña guardada
+    if (saved !== input) return "pw_incorrecta";
+
+    return "ok";
   } catch {
     return "no_cuenta";
   }
-  if (!rec) return "no_cuenta";
-
-  const match =
-    userOrEmail.trim().toLowerCase() === rec.username?.toLowerCase() ||
-    userOrEmail.trim().toLowerCase() === rec.email?.toLowerCase();
-  if (!match) return "no_cuenta";
-
-  const h = await hash(password);
-  return h === rec.passHash ? "ok" : "pw_incorrecta";
 }

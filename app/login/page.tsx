@@ -1,7 +1,8 @@
 "use client";
 
 import "../css/login.css";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { validarFormulario, autenticarLocal } from "../components/login";
 
@@ -13,25 +14,30 @@ export default function Login() {
   const [errEmail, setErrEmail] = useState("");
   const [errPw, setErrPw] = useState("");
 
+  // activa fondo de auth sólo en esta página
+  useEffect(() => {
+    document.body.classList.add("auth-page");
+    return () => document.body.classList.remove("auth-page");
+  }, []);
+
   function focusField(id: "email" | "password") {
-    const el = document.getElementById(id) as HTMLElement | null;
-    if (el) el.focus();
+    const el = document.getElementById(id);
+    if (el instanceof HTMLElement) el.focus();
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (sending) return;
 
-    // limpia errores previos
     setErrEmail("");
     setErrPw("");
 
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget as HTMLFormElement;
+    const fd = new FormData(form);
     const email = String(fd.get("email") || "").trim();
     const password = String(fd.get("password") || "");
     const remember = fd.get("remember") === "on";
 
-    // 1) validaciones de formato
     const v = validarFormulario(email, password);
     setErrEmail(v.errEmail);
     setErrPw(v.errPw);
@@ -43,7 +49,6 @@ export default function Login() {
 
     setSending(true);
 
-    // 2) autenticación local (contra lo guardado al registrar)
     const auth = await autenticarLocal(email, password);
     if (auth === "no_cuenta") {
       setSending(false);
@@ -58,15 +63,14 @@ export default function Login() {
       return;
     }
 
-    // 3) éxito
-    if (remember) {
-      try {
+    try {
+      if (remember) {
         localStorage.setItem(
           "devart_user",
           JSON.stringify({ id: email, ts: Date.now() })
         );
-      } catch {}
-    }
+      }
+    } catch {}
 
     setOk(true);
     setSending(false);
@@ -85,7 +89,6 @@ export default function Login() {
       )}
 
       <form id="loginForm" onSubmit={onSubmit} noValidate>
-        {/* USER / EMAIL */}
         <div className={`form-group ${errEmail ? "invalid" : ""}`}>
           <label htmlFor="email">Email o Usuario</label>
           <input
@@ -96,8 +99,11 @@ export default function Login() {
             required
             className={errEmail ? "error" : ""}
             aria-invalid={!!errEmail}
+            aria-describedby="err_email"
+            disabled={sending}
           />
           <div
+            id="err_email"
             className={`error-message ${errEmail ? "show" : ""}`}
             aria-live="polite"
           >
@@ -105,7 +111,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* PASSWORD */}
         <div className={`form-group ${errPw ? "invalid" : ""}`}>
           <label htmlFor="password">Contraseña</label>
           <div className="password-wrap">
@@ -117,17 +122,21 @@ export default function Login() {
               required
               className={errPw ? "error" : ""}
               aria-invalid={!!errPw}
+              aria-describedby="err_password"
+              disabled={sending}
             />
             <button
               type="button"
               className="password-toggle"
               aria-label={showPw ? "Ocultar contraseña" : "Mostrar contraseña"}
               onClick={() => setShowPw((v) => !v)}
+              disabled={sending}
             >
               {showPw ? "Ocultar" : "Mostrar"}
             </button>
           </div>
           <div
+            id="err_password"
             className={`error-message ${errPw ? "show" : ""}`}
             aria-live="polite"
           >
@@ -137,7 +146,13 @@ export default function Login() {
 
         <div className="remember-forgot">
           <label className="remember-me">
-            <input type="checkbox" id="remember" name="remember" /> Recordarme
+            <input
+              type="checkbox"
+              id="remember"
+              name="remember"
+              disabled={sending}
+            />{" "}
+            Recordarme
           </label>
           <a href="#" className="forgot-password" id="forgotPassword">
             ¿Olvidaste tu contraseña?
@@ -150,7 +165,9 @@ export default function Login() {
           id="loginBtn"
           disabled={sending}
         >
-          {sending ? <div className="loading" id="loading" /> : null}
+          {sending ? (
+            <div className="loading" style={{ display: "inline-block" }} />
+          ) : null}
           <span id="btnText">
             {sending ? "Ingresando..." : "Iniciar Sesión"}
           </span>
@@ -168,10 +185,7 @@ export default function Login() {
       </div>
 
       <div className="register-link">
-        ¿No tienes cuenta?{" "}
-        <a href="/register" id="registerLink">
-          Regístrate aquí
-        </a>
+        ¿No tienes cuenta? <Link href="/register">Regístrate aquí</Link>
       </div>
     </div>
   );
