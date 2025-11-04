@@ -66,18 +66,6 @@ export default function Cart() {
     }
   }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("cart", JSON.stringify(items));
-    } catch {}
-    if (
-      typeof window !== "undefined" &&
-      (window as any).DevArtCarrito?.actualizar
-    ) {
-      (window as any).DevArtCarrito.actualizar();
-    }
-  }, [items]);
-
   const subtotal = useMemo(
     () => items.reduce((t, i) => t + i.precio * i.quantity, 0),
     [items]
