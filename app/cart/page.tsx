@@ -1,6 +1,8 @@
+// app/cart/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import "../css/cart.css";
 import { productos } from "../components/products";
@@ -14,7 +16,7 @@ declare global {
 type Item = {
   id: number;
   nombre: string;
-  precio: number; // CLP unitario
+  precio: number;   // CLP unitario
   quantity: number; // cantidad
   img?: string;
 };
@@ -27,6 +29,18 @@ type CheckoutForm = {
   email: string;
   metodo: MetodoPago;
   aceptar: boolean;
+};
+
+type Order = {
+  id: string;
+  ts: number;
+  items: Item[];
+  subtotal: number;
+  descuento: number;
+  total: number;
+  metodo: MetodoPago;
+  nombre: string;
+  email: string;
 };
 
 const recomendados: Array<Omit<Item, "quantity">> = productos.map((p) => ({
@@ -49,6 +63,8 @@ function CLP(n: number) {
 }
 
 export default function CartPage() {
+  const router = useRouter();
+
   const [items, setItems] = useState<Item[]>([]);
   const [ask, setAsk] = useState<{
     open: boolean;
@@ -73,11 +89,14 @@ export default function CartPage() {
     }
     return m;
   }, []);
+
+  // Cargar carrito
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed: Item[] = raw ? JSON.parse(raw) : [];
-      const withImg = parsed.map((i) => ({
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      const arr: Item[] = Array.isArray(parsed) ? (parsed as Item[]) : [];
+      const withImg = arr.map((i) => ({
         ...i,
         img: i.img || imgById.get(i.id) || "/DevArt.png",
       }));
@@ -85,15 +104,14 @@ export default function CartPage() {
     } catch {
       setItems([]);
     }
-  }, []);
+  }, [imgById]);
 
+  // Persistir carrito y actualizar badge externo si existe
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
     } catch {}
-    if (typeof window !== "undefined" && window.DevArtCarrito?.actualizar) {
-      window.DevArtCarrito.actualizar();
-    }
+    window.DevArtCarrito?.actualizar?.();
   }, [items]);
 
   const subtotal = useMemo(
@@ -111,6 +129,7 @@ export default function CartPage() {
           : i
       )
     );
+
   const dec = (id: number) =>
     setItems((curr) =>
       curr
@@ -121,6 +140,7 @@ export default function CartPage() {
         )
         .filter((i) => i.quantity > 0)
     );
+
   const setQty = (id: number, v: string) => {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
@@ -176,6 +196,7 @@ export default function CartPage() {
     if (items.length === 0) return "El carrito está vacío.";
     return null;
   }
+
   async function pagar() {
     const err = validar();
     if (err) {
@@ -184,27 +205,45 @@ export default function CartPage() {
     }
     setPayErr(null);
     setPayBusy(true);
+
+    // Simula gateway
     await new Promise((r) => setTimeout(r, 900));
+
     const orderId = `DEV-${Date.now().toString(36).toUpperCase()}`;
+    const order: Order = {
+      id: orderId,
+      ts: Date.now(),
+      items,
+      subtotal,
+      descuento,
+      total,
+      metodo: form.metodo,
+      nombre: form.nombre,
+      email: form.email,
+    };
+
     try {
-      localStorage.setItem(
-        "lastOrder",
-        JSON.stringify({
-          id: orderId,
-          total,
-          items,
-          metodo: form.metodo,
-          nombre: form.nombre,
-          email: form.email,
-          fecha: new Date().toISOString(),
-        })
-      );
+      // Historial persistido
+      const KEY = "histCart";
+      const prevRaw = localStorage.getItem(KEY);
+      const prevUnknown: unknown = JSON.parse(prevRaw ?? "[]");
+      const prev: Order[] = Array.isArray(prevUnknown)
+        ? (prevUnknown as Order[])
+        : [];
+      prev.push(order);
+      localStorage.setItem(KEY, JSON.stringify(prev));
+
+      // Última orden y limpieza de carrito
+      localStorage.setItem("lastOrder", JSON.stringify(order));
+      localStorage.setItem("cart", JSON.stringify([]));
     } catch {}
 
-    setItems([]); // limpia carrito
+    setItems([]);
     setPayBusy(false);
     setPayOpen(false);
-    alert(`Pago aprobado.\nOrden: ${orderId}\nTotal: ${CLP(total)}`);
+
+    // Redirección sin alertas
+    router.replace(`/histCart?order=${encodeURIComponent(orderId)}`);
   }
 
   const estaVacio = items.length === 0;
@@ -367,6 +406,7 @@ export default function CartPage() {
         </div>
       )}
 
+      {/* Modal de pago */}
       {payOpen && (
         <div className="modal-overlay">
           <div className="modal">
@@ -401,7 +441,7 @@ export default function CartPage() {
                     type="email"
                     value={form.email}
                     onChange={(e) => onChange("email", e.target.value)}
-                    placeholder="evensR@ejemplo.com"
+                    placeholder="usuario@ejemplo.com"
                     autoComplete="email"
                   />
                 </div>
@@ -411,7 +451,7 @@ export default function CartPage() {
                   <select
                     id="pay-metodo"
                     value={form.metodo}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                       onChange("metodo", e.target.value as MetodoPago)
                     }
                   >
