@@ -1,5 +1,17 @@
 "use client";
+
+import Image, { StaticImageData } from "next/image";
 import "../css/blog.css";
+
+// imágenes desde app/img
+import bigdata from "../img/ChatGPTbigdata.png";
+import devweb from "../img/ChatGPTdevweb.png";
+import analisis from "../img/ChatGPTanalisisdata.png";
+import creative from "../img/CreativeCode.jpg";
+import minimalist from "../img/Minimalist.jpg";
+import uiconcepts from "../img/UICONCEPTS.jpg";
+import devart from "../img/DevArt.png";
+
 type Post = {
   id: string;
   titulo: string;
@@ -7,7 +19,7 @@ type Post = {
   autor: string;
   categoria: string;
   minutos: number;
-  img: string;
+  img: StaticImageData;
   excerpt: string;
   tags: string[];
 };
@@ -19,7 +31,7 @@ const destacados: Post = {
   autor: "DevArt Team",
   categoria: "Desarrollo",
   minutos: 5,
-  img: "/ChatGPTdevweb.png",
+  img: devweb,
   excerpt:
     "Cómo la inteligencia artificial está revolucionando el desarrollo web y habilitando experiencias más creativas.",
   tags: [],
@@ -33,7 +45,7 @@ const posts: Post[] = [
     autor: "DevArt Team",
     categoria: "Data Science",
     minutos: 4,
-    img: "/ChatGPTbigdata.png",
+    img: bigdata,
     excerpt:
       "Convierte conjuntos de datos complejos en obras de arte visualmente impactantes.",
     tags: ["Data Viz", "D3.js", "Arte"],
@@ -45,7 +57,7 @@ const posts: Post[] = [
     autor: "Creative Coder",
     categoria: "Analytics",
     minutos: 6,
-    img: "/ChatGPTanalisisdata.png",
+    img: analisis,
     excerpt:
       "Algoritmos que abren nuevas formas de expresión artística en el mundo digital.",
     tags: ["ML", "Python", "Generativo"],
@@ -57,7 +69,7 @@ const posts: Post[] = [
     autor: "Innovation Lab",
     categoria: "Creative Coding",
     minutos: 5,
-    img: "/CreativeCode.jpg",
+    img: creative,
     excerpt: "Introducción a p5.js para crear arte interactivo y animaciones.",
     tags: ["p5.js", "JavaScript", "Interactivo"],
   },
@@ -68,7 +80,7 @@ const posts: Post[] = [
     autor: "UX Designer",
     categoria: "UI/UX",
     minutos: 3,
-    img: "/Minimalist.jpg",
+    img: minimalist,
     excerpt:
       "Principios del diseño minimalista aplicados a interfaces modernas.",
     tags: ["UI", "CSS", "Minimalismo"],
@@ -80,7 +92,7 @@ const posts: Post[] = [
     autor: "Design Team",
     categoria: "Design",
     minutos: 4,
-    img: "/UICONCEPTS.jpg",
+    img: uiconcepts,
     excerpt: "Lo último en diseño de interfaces que marca el rumbo del año.",
     tags: ["Trends", "UI", "2025"],
   },
@@ -91,7 +103,7 @@ const posts: Post[] = [
     autor: "DevArt Team",
     categoria: "DevArt",
     minutos: 4,
-    img: "/DevArt.png",
+    img: devart,
     excerpt: "La historia detrás de DevArt y nuestro enfoque de comunidad.",
     tags: ["Community", "Platform", "Story"],
   },
@@ -102,7 +114,7 @@ export default function Blogs() {
     e.preventDefault();
     const input = new FormData(e.currentTarget).get("email") as string;
     if (!input) return;
-    alert(`Suscrito: ${input}`); // reemplaza por tu integración real
+    alert(`Suscrito: ${input}`);
     e.currentTarget.reset();
   }
 
@@ -124,7 +136,13 @@ export default function Blogs() {
           <div className="featured-badge">⭐ Artículo Destacado</div>
           <article className="featured-article">
             <div className="featured-image">
-              <img src={destacados.img} alt={destacados.titulo} />
+              <Image
+                src={destacados.img}
+                alt={destacados.titulo}
+                width={1200}
+                height={675}
+                priority
+              />
               <div className="image-overlay">
                 <span className="read-time">
                   {destacados.minutos} min lectura
@@ -150,7 +168,7 @@ export default function Blogs() {
           {posts.map((p) => (
             <article key={p.id} className="blog-card">
               <div className="card-image">
-                <img src={p.img} alt={p.titulo} />
+                <Image src={p.img} alt={p.titulo} width={640} height={360} />
                 <div className="category-tag">{p.categoria}</div>
               </div>
               <div className="card-content">
