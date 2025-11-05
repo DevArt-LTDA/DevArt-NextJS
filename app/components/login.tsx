@@ -1,5 +1,3 @@
-// app/components/login.ts
-
 export function validarFormulario(emailOrUser: string, password: string) {
   let errEmail = "";
   let errPw = "";
@@ -16,7 +14,6 @@ export function validarFormulario(emailOrUser: string, password: string) {
 
 type AuthResult = "ok" | "no_cuenta" | "pw_incorrecta";
 
-// normaliza strings (quita espacios y NBSP alrededor)
 function norm(s: unknown): string {
   if (s == null) return "";
   return String(s)
@@ -35,9 +32,9 @@ export async function autenticarLocal(
     const rec = JSON.parse(raw) as {
       user?: string;
       email?: string;
-      pwd?: string; // nuevo
-      password?: string; // compat
-      pass?: string; // compat
+      pwd?: string;
+      password?: string;
+      pass?: string;
     };
 
     const idIn = norm(emailOrUser).toLowerCase();
@@ -47,11 +44,10 @@ export async function autenticarLocal(
     const match = idIn === user || idIn === mail;
     if (!match) return "no_cuenta";
 
-    // toma la contraseña desde cualquiera de las posibles claves
     const saved = norm(rec.pwd || rec.password || rec.pass);
-    const input = String(password); // NO cambiar mayúsculas/minúsculas
+    const input = String(password); 
 
-    if (!saved) return "pw_incorrecta"; // registro sin contraseña guardada
+    if (!saved) return "pw_incorrecta";
     if (saved !== input) return "pw_incorrecta";
 
     return "ok";

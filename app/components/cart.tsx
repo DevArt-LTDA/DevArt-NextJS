@@ -1,7 +1,7 @@
-// app/components/cart.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import "../css/cart.css";
 import { productos } from "./products";
 
@@ -40,6 +40,7 @@ function CLP(n: number) {
 }
 
 export default function Cart() {
+  const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [ask, setAsk] = useState<{
     open: boolean;
@@ -47,7 +48,7 @@ export default function Cart() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Cargar carrito sin `any`
+  // Carga carrito desde localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
@@ -90,6 +91,7 @@ export default function Cart() {
           : i
       )
     );
+
   const dec = (id: number) =>
     setItems((curr) =>
       curr
@@ -100,6 +102,7 @@ export default function Cart() {
         )
         .filter((i) => i.quantity > 0)
     );
+
   const setQty = (id: number, v: string) => {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
@@ -140,8 +143,42 @@ export default function Cart() {
     });
   }
 
+  function genOrderId() {
+    const d = new Date();
+    const ymd = [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, "0"),
+      String(d.getDate()).padStart(2, "0"),
+    ].join("");
+    const rnd = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `ORD-${ymd}-${rnd}`;
+  }
+
   function checkout() {
-    alert("Demo de pago. Total: " + CLP(total));
+    // Simulación de pago exitoso
+    const orderId = genOrderId();
+    const order = {
+      id: orderId,
+      ts: Date.now(),
+      items,
+      subtotal,
+      descuento,
+      total,
+    };
+
+    try {
+      const KEY = "histCart";
+      const raw = localStorage.getItem(KEY);
+      const prev = JSON.parse(raw ?? "[]");
+      const arr: any[] = Array.isArray(prev) ? prev : [];
+      arr.push(order);
+      localStorage.setItem(KEY, JSON.stringify(arr));
+      // Limpia carritooo
+      localStorage.setItem("cart", JSON.stringify([]));
+      setItems([]);
+    } catch {}
+
+    router.push(`/histCart?order=${encodeURIComponent(orderId)}`);
   }
 
   const vacio = items.length === 0;

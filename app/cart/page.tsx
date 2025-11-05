@@ -29,7 +29,6 @@ type CheckoutForm = {
   aceptar: boolean;
 };
 
-// Recomendados desde catálogo (StaticImageData -> string)
 const recomendados: Array<Omit<Item, "quantity">> = productos.map((p) => ({
   id: p.id,
   nombre: p.nombre,
@@ -57,7 +56,6 @@ export default function CartPage() {
     id?: number;
   }>({ open: false, action: null });
 
-  // modal de pago
   const [payOpen, setPayOpen] = useState(false);
   const [payBusy, setPayBusy] = useState(false);
   const [payErr, setPayErr] = useState<string | null>(null);
@@ -68,7 +66,6 @@ export default function CartPage() {
     aceptar: false,
   });
 
-  // índice de imágenes
   const imgById = useMemo(() => {
     const m = new Map<number, string>();
     for (const p of productos) {
@@ -76,8 +73,6 @@ export default function CartPage() {
     }
     return m;
   }, []);
-
-  // Cargar carrito
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
@@ -90,10 +85,8 @@ export default function CartPage() {
     } catch {
       setItems([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persistir + badge
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
@@ -191,10 +184,7 @@ export default function CartPage() {
     }
     setPayErr(null);
     setPayBusy(true);
-
-    // Simulación de pago
     await new Promise((r) => setTimeout(r, 900));
-
     const orderId = `DEV-${Date.now().toString(36).toUpperCase()}`;
     try {
       localStorage.setItem(
@@ -377,7 +367,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Modal de pago */}
       {payOpen && (
         <div className="modal-overlay">
           <div className="modal">
@@ -412,7 +401,7 @@ export default function CartPage() {
                     type="email"
                     value={form.email}
                     onChange={(e) => onChange("email", e.target.value)}
-                    placeholder="tu-email@ejemplo.com"
+                    placeholder="evensR@ejemplo.com"
                     autoComplete="email"
                   />
                 </div>

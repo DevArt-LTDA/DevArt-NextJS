@@ -3,7 +3,6 @@
 import Image, { StaticImageData } from "next/image";
 import "../css/products.css";
 
-// importa imágenes estáticas desde app/img
 import bigdata from "../img/ChatGPTbigdata.png";
 import devweb from "../img/ChatGPTdevweb.png";
 import analisis from "../img/ChatGPTanalisisdata.png";

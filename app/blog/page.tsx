@@ -2,8 +2,6 @@
 
 import Image, { StaticImageData } from "next/image";
 import "../css/blog.css";
-
-// imágenes desde app/img
 import bigdata from "../img/ChatGPTbigdata.png";
 import devweb from "../img/ChatGPTdevweb.png";
 import analisis from "../img/ChatGPTanalisisdata.png";
@@ -162,8 +160,6 @@ export default function Blogs() {
             </div>
           </article>
         </section>
-
-        {/* Grid */}
         <section className="blog-grid">
           {posts.map((p) => (
             <article key={p.id} className="blog-card">
@@ -199,7 +195,6 @@ export default function Blogs() {
           ))}
         </section>
 
-        {/* Newsletter */}
         <section className="newsletter-section">
           <div className="newsletter-content">
             <h3 className="newsletter-title">Mantente al Día</h3>
@@ -211,7 +206,7 @@ export default function Blogs() {
               <input
                 type="email"
                 name="email"
-                placeholder="tu-email@ejemplo.com"
+                placeholder="evensR@ejemplo.com"
                 className="newsletter-input"
                 required
               />

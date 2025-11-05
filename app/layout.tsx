@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import LoginImg from "./img/Login-user-icon.png";
@@ -8,9 +7,7 @@ import CartInit from "./ui/cartInit";
 import "./globals.css";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-
 type StoredUser = { name?: string; displayName?: string; email?: string };
-
 export default function RootLayout({
   children,
 }: {
@@ -19,18 +16,13 @@ export default function RootLayout({
   const pathname = (usePathname() || "/").toLowerCase();
   const isAuth =
     pathname.startsWith("/login") || pathname.startsWith("/register");
-
   const [userName, setUserName] = useState<string | null>(null);
-
-  // Clase de layout para pantallas de auth
   useEffect(() => {
     const cls = "auth-layout";
     if (isAuth) document.body.classList.add(cls);
     else document.body.classList.remove(cls);
     return () => document.body.classList.remove(cls);
   }, [isAuth]);
-
-  // Cargar y mantener sincronizado el nombre mostrado
   useEffect(() => {
     const load = () => {
       try {
@@ -48,7 +40,7 @@ export default function RootLayout({
     const onStorage = (e: StorageEvent) => {
       if (e.key === "user") load();
     };
-    const onUser = () => load(); // evento manual
+    const onUser = () => load();
     window.addEventListener("storage", onStorage);
     window.addEventListener("devart:user", onUser as EventListener);
     return () => {

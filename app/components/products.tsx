@@ -1,9 +1,7 @@
-// app/components/products.tsx
 import { StaticImageData } from "next/image";
 import bigdata from "../img/ChatGPTbigdata.png";
 import devweb from "../img/ChatGPTdevweb.png";
 import analisis from "../img/ChatGPTanalisisdata.png";
-
 export type Producto = {
   id: number;
   nombre: string;
@@ -12,7 +10,6 @@ export type Producto = {
   descripcion: string;
   features: string[];
 };
-
 const productos: Producto[] = [
   {
     id: 1,

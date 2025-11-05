@@ -1,5 +1,3 @@
-// helpers puros, sin React
-
 export type Strength = "weak" | "medium" | "strong";
 
 export function esEmail(v: string): boolean {

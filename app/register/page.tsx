@@ -8,7 +8,6 @@ import { validarRegistro, evaluarPassword } from "../components/register";
 
 type Errs = Record<string, string>;
 
-/* ==== almacenamiento seguro con fallback ==== */
 function isStorageAvailable(kind: "localStorage" | "sessionStorage") {
   try {
     const s = window[kind];
@@ -112,12 +111,12 @@ export default function RegisterPage() {
     const payload = {
       user: String(fd.get("username") || ""),
       email: String(fd.get("email") || ""),
-      pwd: String(fd.get("password") || ""), // <-- CLAVE: guarda la contraseña
+      pwd: String(fd.get("password") || ""),
       ts: Date.now(),
     };
 
     setSending(true);
-    await new Promise((r) => setTimeout(r, 700)); // simula API
+    await new Promise((r) => setTimeout(r, 700));
 
     const backend = safeSet("devart_user_reg", JSON.stringify(payload));
     if (backend !== "local") {
@@ -153,7 +152,6 @@ export default function RegisterPage() {
       )}
 
       <form id="registerForm" onSubmit={onSubmit} noValidate>
-        {/* Nombre */}
         <div className={`form-group ${errs.fullName ? "invalid" : ""}`}>
           <label htmlFor="fullName">Nombre Completo</label>
           <input
