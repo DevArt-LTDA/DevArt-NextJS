@@ -1,4 +1,3 @@
-// app/src/about.tsx
 import "../css/about.css";
 
 export const metadata = {
@@ -10,7 +9,6 @@ export const metadata = {
 export default function About() {
   return (
     <>
-      {/* Hero */}
       <section className="hero-section">
         <div className="hero-content">
           <div className="hero-text">
@@ -30,10 +28,8 @@ export default function About() {
         </div>
       </section>
 
-      {/* Contenido */}
       <div className="container">
         <section className="about-content">
-          {/* Misión */}
           <div className="content-card mission-card">
             <div className="card-icon" />
             <h2 className="section-title">Nuestra Misión</h2>
@@ -47,7 +43,6 @@ export default function About() {
             <div className="card-decoration" />
           </div>
 
-          {/* Equipo */}
           <div className="content-card team-card">
             <div className="card-icon" />
             <h2 className="section-title">Nuestro Equipo</h2>
@@ -74,7 +69,6 @@ export default function About() {
             <div className="card-decoration" />
           </div>
 
-          {/* Únete */}
           <div className="content-card join-card">
             <div className="card-icon" />
             <h2 className="section-title">Únete a Nosotros</h2>
@@ -94,7 +88,6 @@ export default function About() {
             <div className="card-decoration" />
           </div>
 
-          {/* Valores */}
           <div className="values-section">
             <h2 className="values-title">Nuestros Valores</h2>
             <div className="values-grid">
