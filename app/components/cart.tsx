@@ -1,3 +1,4 @@
+// app/components/cart.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -18,6 +19,14 @@ type Stored = {
   precio?: unknown;
   quantity?: unknown;
   img?: unknown;
+};
+type Order = {
+  id: string;
+  ts: number;
+  items: Item[];
+  subtotal: number;
+  descuento: number;
+  total: number;
 };
 
 const RECOMENDADOS: Array<Omit<Item, "quantity">> = productos.map((p) => ({
@@ -70,6 +79,7 @@ export default function Cart() {
     }
   }, []);
 
+  // Persiste carrito
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
@@ -157,7 +167,7 @@ export default function Cart() {
   function checkout() {
     // Simulación de pago exitoso
     const orderId = genOrderId();
-    const order = {
+    const order: Order = {
       id: orderId,
       ts: Date.now(),
       items,
@@ -169,11 +179,11 @@ export default function Cart() {
     try {
       const KEY = "histCart";
       const raw = localStorage.getItem(KEY);
-      const prev = JSON.parse(raw ?? "[]");
-      const arr: any[] = Array.isArray(prev) ? prev : [];
+      const prev: unknown = JSON.parse(raw ?? "[]");
+      const arr: Order[] = Array.isArray(prev) ? (prev as Order[]) : [];
       arr.push(order);
       localStorage.setItem(KEY, JSON.stringify(arr));
-      // Limpia carritooo
+      // Limpia carrito
       localStorage.setItem("cart", JSON.stringify([]));
       setItems([]);
     } catch {}
