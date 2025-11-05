@@ -15,12 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLogin = pathname === "/login";
   const isRegister = pathname === "/register";
   return (
     <html lang="es">
       <body>
-        {!isLogin && !isRegister && (
+        {!isRegister && (
           <div className="NavBar">
             <div
               className="logo"
@@ -54,7 +53,7 @@ export default function RootLayout({
           </div>
         )}
         {children}
-        {!isLogin && !isRegister && (
+        {!isRegister && (
           <footer>
             <div className="footer-content">
               <div className="footer">
