@@ -14,18 +14,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isRegister = pathname === "/register";
+  const pathnameRaw = usePathname() || "/";
+  const pathname = pathnameRaw.toLowerCase();
+
+  // Cubre /login, /login?x=, /register, /register/...
+  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
+
   return (
     <html lang="es">
-      <body>
-        {!isRegister && (
+      <body className={isAuth ? "auth-layout" : ""}>
+        {!isAuth && (
           <div className="NavBar">
-            <div
-              className="logo"
-              style={{ position: "absolute", left: 50, top: 10 }}
-            ></div>
-
+            <div className="logo" style={{ position: "absolute", left: 50, top: 10 }} />
             <Link href="/">Home</Link>
             <Link href="/products">Productos</Link>
             <Link href="/about">Nosotros</Link>
@@ -42,18 +42,17 @@ export default function RootLayout({
             <div className="Login-icon">
               <Link href="/login">
                 <Image src={LoginImg} alt="Login" width={30} priority />
-                <span
-                  className="Login-text"
-                  style={{ position: "relative", top: -10 }}
-                >
+                <span className="Login-text" style={{ position: "relative", top: -10 }}>
                   Login
                 </span>
               </Link>
             </div>
           </div>
         )}
+
         {children}
-        {!isRegister && (
+
+        {!isAuth && (
           <footer>
             <div className="footer-content">
               <div className="footer">
@@ -72,8 +71,9 @@ export default function RootLayout({
             </div>
           </footer>
         )}
+
         <CartInit />
-        <UserInit /> {/* <-- monta el actualizador del nombre */}
+        <UserInit />
       </body>
     </html>
   );

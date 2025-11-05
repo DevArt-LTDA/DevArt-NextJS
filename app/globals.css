@@ -486,6 +486,18 @@ footer::before {
     margin: 0 4px;
     font-size: 0.9rem;
   }
+  /* Ya tienes body { padding-top:80px } para dejar espacio al NavBar.
+   Si no hay NavBar (login/register), quítalo. */
+  .auth-layout {
+    padding-top: 0;
+    min-height: 100vh; /* para centrar cómodamente el login si lo deseas */
+  }
+
+  /* Opcional: centra el contenedor del login si tu página usa .login-wrapper */
+  .auth-layout .login-wrapper {
+    max-width: 480px;
+    margin: 4rem auto;
+  }
 
   body {
     padding-top: 70px;
