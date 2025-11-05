@@ -1,4 +1,3 @@
-// app/cart/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -15,20 +14,19 @@ declare global {
 type Item = {
   id: number;
   nombre: string;
-  precio: number;
-  quantity: number;
+  precio: number; // CLP unitario
+  quantity: number; // cantidad
   img?: string;
 };
 
-type Stored = {
-  id?: unknown;
-  nombre?: unknown;
-  precio?: unknown;
-  quantity?: unknown;
-  img?: unknown;
+type CheckoutForm = {
+  nombre: string;
+  email: string;
+  metodo: "Webpay" | "Transferencia" | "PayPal" | "";
+  aceptar: boolean;
 };
 
-// Recomendados
+// Recomendados desde catálogo (StaticImageData -> string)
 const recomendados: Array<Omit<Item, "quantity">> = productos.map((p) => ({
   id: p.id,
   nombre: p.nombre,
@@ -56,44 +54,50 @@ export default function CartPage() {
     id?: number;
   }>({ open: false, action: null });
 
+  // modal de pago
+  const [payOpen, setPayOpen] = useState(false);
+  const [payBusy, setPayBusy] = useState(false);
+  const [payErr, setPayErr] = useState<string | null>(null);
+  const [form, setForm] = useState<CheckoutForm>({
+    nombre: "",
+    email: "",
+    metodo: "",
+    aceptar: false,
+  });
+
+  // índice de imágenes
   const imgById = useMemo(() => {
     const m = new Map<number, string>();
-    for (const p of productos)
+    for (const p of productos) {
       m.set(p.id, typeof p.img === "string" ? p.img : p.img.src);
+    }
     return m;
   }, []);
 
-  // Cargar carrito sin `any`
+  // Cargar carrito
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed = JSON.parse(raw ?? "[]") as unknown;
-      const arr: Stored[] = Array.isArray(parsed) ? (parsed as Stored[]) : [];
-      const norm: Item[] = arr
-        .map((i) => ({
-          id: Number(i.id ?? 0),
-          nombre: typeof i.nombre === "string" ? i.nombre : "",
-          precio: Number(i.precio ?? 0),
-          quantity: Number(i.quantity ?? 0),
-          img:
-            typeof i.img === "string"
-              ? i.img
-              : imgById.get(Number(i.id ?? 0)) || "/DevArt.png",
-        }))
-        .filter((x) => x.id > 0 && x.quantity > 0);
-      setItems(norm);
+      const parsed: Item[] = raw ? JSON.parse(raw) : [];
+      const withImg = parsed.map((i) => ({
+        ...i,
+        img: i.img || imgById.get(i.id) || "/DevArt.png",
+      }));
+      setItems(withImg);
     } catch {
       setItems([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Persistir + badge
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
     } catch {}
-    if (typeof window !== "undefined" && window.DevArtCarrito?.actualizar)
+    if (typeof window !== "undefined" && window.DevArtCarrito?.actualizar) {
       window.DevArtCarrito.actualizar();
+    }
   }, [items]);
 
   const subtotal = useMemo(
@@ -137,30 +141,77 @@ export default function CartPage() {
     setAsk({ open: true, action: "vaciar" });
   }
   function confirmar() {
-    setItems((curr) => {
-      if (ask.action === "vaciar") return [];
-      if (ask.action === "eliminar" && ask.id != null)
-        return curr.filter((i) => i.id !== ask.id);
-      return curr;
-    });
+    if (ask.action === "vaciar") setItems([]);
+    if (ask.action === "eliminar" && ask.id != null)
+      setItems((curr) => curr.filter((i) => i.id !== ask.id));
     setAsk({ open: false, action: null });
   }
   function cancelar() {
     setAsk({ open: false, action: null });
   }
+
   function agregarRecomendado(p: Omit<Item, "quantity">) {
     setItems((curr) => {
-      const idx = curr.findIndex((x) => x.id === p.id);
-      if (idx >= 0) {
+      const i = curr.findIndex((x) => x.id === p.id);
+      if (i >= 0) {
         const copy = [...curr];
-        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + 1 };
+        copy[i] = { ...copy[i], quantity: copy[i].quantity + 1 };
         return copy;
       }
       return [...curr, { ...p, quantity: 1 }];
     });
   }
-  function checkout() {
-    alert("Demo: aquí iría la pasarela de pago. Total " + CLP(total));
+
+  // === Pago ===
+  function abrirPago() {
+    setPayErr(null);
+    setPayOpen(true);
+  }
+  function onChange<K extends keyof CheckoutForm>(k: K, v: CheckoutForm[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+  function validar(): string | null {
+    if (!form.nombre || form.nombre.trim().length < 2)
+      return "Ingresa tu nombre.";
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+    if (!emailOk) return "Correo inválido.";
+    if (!form.metodo) return "Selecciona un método de pago.";
+    if (!form.aceptar) return "Debes aceptar los términos.";
+    if (items.length === 0) return "El carrito está vacío.";
+    return null;
+  }
+  async function pagar() {
+    const err = validar();
+    if (err) {
+      setPayErr(err);
+      return;
+    }
+    setPayErr(null);
+    setPayBusy(true);
+
+    // Simulación de pago
+    await new Promise((r) => setTimeout(r, 900));
+
+    const orderId = `DEV-${Date.now().toString(36).toUpperCase()}`;
+    try {
+      localStorage.setItem(
+        "lastOrder",
+        JSON.stringify({
+          id: orderId,
+          total,
+          items,
+          metodo: form.metodo,
+          nombre: form.nombre,
+          email: form.email,
+          fecha: new Date().toISOString(),
+        })
+      );
+    } catch {}
+
+    setItems([]); // limpia carrito
+    setPayBusy(false);
+    setPayOpen(false);
+    alert(`Pago aprobado.\nOrden: ${orderId}\nTotal: ${CLP(total)}`);
   }
 
   const estaVacio = items.length === 0;
@@ -191,6 +242,7 @@ export default function CartPage() {
               <span>Subtotal</span>
               <span>Acciones</span>
             </div>
+
             <div className="cart-items-list">
               {items.map((i) => (
                 <div key={i.id} className="cart-row">
@@ -201,7 +253,9 @@ export default function CartPage() {
                       <div className="muted">ID #{i.id}</div>
                     </div>
                   </div>
+
                   <div className="c-price">{CLP(i.precio)}</div>
+
                   <div className="c-qty">
                     <button onClick={() => dec(i.id)} aria-label="Disminuir">
                       −
@@ -215,7 +269,9 @@ export default function CartPage() {
                       +
                     </button>
                   </div>
+
                   <div className="c-sub">{CLP(i.precio * i.quantity)}</div>
+
                   <div className="c-actions">
                     <button
                       className="link danger"
@@ -254,7 +310,7 @@ export default function CartPage() {
                 <button onClick={vaciar} className="clear-cart-btn">
                   Vaciar Carrito
                 </button>
-                <button onClick={checkout} className="checkout-btn">
+                <button onClick={abrirPago} className="checkout-btn">
                   Proceder al Pago
                 </button>
               </div>
@@ -285,6 +341,7 @@ export default function CartPage() {
         </div>
       </section>
 
+      {/* Modal eliminar/vaciar */}
       {ask.open && (
         <div className="modal-overlay">
           <div className="modal">
@@ -311,6 +368,93 @@ export default function CartPage() {
               </button>
               <button className="modal-btn confirm" onClick={confirmar}>
                 Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de pago */}
+      {payOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Proceder al Pago</h3>
+              <button
+                className="modal-close"
+                onClick={() => setPayOpen(false)}
+                disabled={payBusy}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="pay-grid">
+                <div className="field">
+                  <label>Nombre y Apellido</label>
+                  <input
+                    type="text"
+                    value={form.nombre}
+                    onChange={(e) => onChange("nombre", e.target.value)}
+                    placeholder="Tu nombre"
+                  />
+                </div>
+                <div className="field">
+                  <label>Correo</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => onChange("email", e.target.value)}
+                    placeholder="tu-email@ejemplo.com"
+                  />
+                </div>
+                <div className="field">
+                  <label>Método de Pago</label>
+                  <select
+                    value={form.metodo}
+                    onChange={(e) =>
+                      onChange(
+                        "metodo",
+                        e.target.value as CheckoutForm["metodo"]
+                      )
+                    }
+                  >
+                    <option value="">Selecciona…</option>
+                    <option value="Webpay">Webpay</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="PayPal">PayPal</option>
+                  </select>
+                </div>
+                <div className="field checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={form.aceptar}
+                      onChange={(e) => onChange("aceptar", e.target.checked)}
+                    />{" "}
+                    Acepto términos y condiciones
+                  </label>
+                </div>
+                <div className="pay-total">
+                  Total a pagar: <strong>{CLP(total)}</strong>
+                </div>
+                {payErr && <div className="pay-error">{payErr}</div>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-btn cancel"
+                onClick={() => setPayOpen(false)}
+                disabled={payBusy}
+              >
+                Cancelar
+              </button>
+              <button
+                className="modal-btn confirm"
+                onClick={pagar}
+                disabled={payBusy}
+              >
+                {payBusy ? "Procesando…" : "Pagar ahora"}
               </button>
             </div>
           </div>
