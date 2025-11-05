@@ -8,12 +8,18 @@ import { productos } from "./products";
 type Item = {
   id: number;
   nombre: string;
-  precio: number; // CLP unitario
-  quantity: number; // cantidad
+  precio: number;
+  quantity: number;
   img?: string;
 };
+type Stored = {
+  id?: unknown;
+  nombre?: unknown;
+  precio?: unknown;
+  quantity?: unknown;
+  img?: unknown;
+};
 
-// Recomendados (StaticImageData -> string)
 const RECOMENDADOS: Array<Omit<Item, "quantity">> = productos.map((p) => ({
   id: p.id,
   nombre: p.nombre,
@@ -41,26 +47,28 @@ export default function Cart() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Cargar carrito y normalizar tipos
+  // Cargar carrito sin `any`
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed: any[] = raw ? JSON.parse(raw) : [];
+      const parsed = JSON.parse(raw ?? "[]") as unknown;
+      const arr: Stored[] = Array.isArray(parsed) ? (parsed as Stored[]) : [];
       setItems(
-        parsed.map((i) => ({
-          id: Number(i.id),
-          nombre: String(i.nombre ?? ""),
-          precio: Number(i.precio) || 0,
-          quantity: Number(i.quantity) || 0,
-          img: i.img,
-        }))
+        arr
+          .map((i) => ({
+            id: Number(i.id ?? 0),
+            nombre: typeof i.nombre === "string" ? i.nombre : "",
+            precio: Number(i.precio ?? 0),
+            quantity: Number(i.quantity ?? 0),
+            img: typeof i.img === "string" ? i.img : undefined,
+          }))
+          .filter((x) => x.id > 0 && x.quantity > 0)
       );
     } catch {
       setItems([]);
     }
   }, []);
 
-  // Persistir
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
@@ -74,7 +82,7 @@ export default function Cart() {
   const descuento = 0;
   const total = subtotal - descuento;
 
-  function inc(id: number) {
+  const inc = (id: number) =>
     setItems((curr) =>
       curr.map((i) =>
         i.id === id
@@ -82,9 +90,7 @@ export default function Cart() {
           : i
       )
     );
-  }
-
-  function dec(id: number) {
+  const dec = (id: number) =>
     setItems((curr) =>
       curr
         .map((i) =>
@@ -94,16 +100,14 @@ export default function Cart() {
         )
         .filter((i) => i.quantity > 0)
     );
-  }
-
-  function setQty(id: number, v: string) {
+  const setQty = (id: number, v: string) => {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
       curr
         .map((i) => (i.id === id ? { ...i, quantity: q } : i))
         .filter((i) => i.quantity > 0)
     );
-  }
+  };
 
   function eliminar(id: number) {
     setAsk({ open: true, action: "eliminar", id });
@@ -111,29 +115,25 @@ export default function Cart() {
   function vaciar() {
     setAsk({ open: true, action: "vaciar" });
   }
-
   function confirmar() {
     setItems((curr) => {
       if (ask.action === "vaciar") return [];
-      if (ask.action === "eliminar" && ask.id != null) {
-        const idNum = Number(ask.id);
-        return curr.filter((i) => Number(i.id) !== idNum);
-      }
+      if (ask.action === "eliminar" && ask.id != null)
+        return curr.filter((i) => i.id !== ask.id);
       return curr;
     });
     setAsk({ open: false, action: null });
   }
-
   function cancelar() {
     setAsk({ open: false, action: null });
   }
 
   function agregarRecomendado(p: Omit<Item, "quantity">) {
     setItems((curr) => {
-      const i = curr.findIndex((x) => x.id === p.id);
-      if (i >= 0) {
+      const idx = curr.findIndex((x) => x.id === p.id);
+      if (idx >= 0) {
         const copy = [...curr];
-        copy[i] = { ...copy[i], quantity: copy[i].quantity + 1 };
+        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + 1 };
         return copy;
       }
       return [...curr, { ...p, quantity: 1 }];
@@ -172,7 +172,6 @@ export default function Cart() {
               <span>Subtotal</span>
               <span>Acciones</span>
             </div>
-
             <div className="cart-items-list">
               {items.map((i) => (
                 <div key={i.id} className="cart-row">
@@ -183,9 +182,7 @@ export default function Cart() {
                       <div className="muted">ID #{i.id}</div>
                     </div>
                   </div>
-
                   <div className="c-price">{CLP(i.precio)}</div>
-
                   <div className="c-qty">
                     <button onClick={() => dec(i.id)} aria-label="Disminuir">
                       −
@@ -199,9 +196,7 @@ export default function Cart() {
                       +
                     </button>
                   </div>
-
                   <div className="c-sub">{CLP(i.precio * i.quantity)}</div>
-
                   <div className="c-actions">
                     <button
                       className="link danger"
