@@ -63,13 +63,23 @@ export default function Login() {
       return;
     }
 
+    // === Persistencia y señal al layout ===
     try {
+      const displayName = email.includes("@") ? email.split("@")[0] : email;
+      // Clave que lee el layout
+      localStorage.setItem("user", JSON.stringify({ email, displayName }));
+      // Solo para “recuérdame” mantén un token simple si lo necesitas
       if (remember) {
         localStorage.setItem(
           "devart_user",
           JSON.stringify({ id: email, ts: Date.now() })
         );
+      } else {
+        // si venía de antes, límpialo
+        localStorage.removeItem("devart_user");
       }
+      // Dispara evento para que el layout refresque sin recargar
+      window.dispatchEvent(new Event("devart:user"));
     } catch {}
 
     setOk(true);

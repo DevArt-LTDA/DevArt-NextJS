@@ -22,7 +22,7 @@ export default function RootLayout({
 
   const [userName, setUserName] = useState<string | null>(null);
 
-  // Alterna clase en <body> de forma imperativa para evitar que quede pegada
+  // Clase de layout para pantallas de auth
   useEffect(() => {
     const cls = "auth-layout";
     if (isAuth) document.body.classList.add(cls);
@@ -30,7 +30,7 @@ export default function RootLayout({
     return () => document.body.classList.remove(cls);
   }, [isAuth]);
 
-  // Carga y sincroniza nombre de usuario
+  // Cargar y mantener sincronizado el nombre mostrado
   useEffect(() => {
     const load = () => {
       try {
@@ -39,7 +39,7 @@ export default function RootLayout({
         const u: StoredUser = JSON.parse(raw);
         const n =
           u.displayName || u.name || (u.email ? u.email.split("@")[0] : "");
-        setUserName(n && n.trim() !== "" ? n : null);
+        setUserName(n && n.trim() ? n : null);
       } catch {
         setUserName(null);
       }
@@ -48,7 +48,7 @@ export default function RootLayout({
     const onStorage = (e: StorageEvent) => {
       if (e.key === "user") load();
     };
-    const onUser = () => load();
+    const onUser = () => load(); // evento manual
     window.addEventListener("storage", onStorage);
     window.addEventListener("devart:user", onUser as EventListener);
     return () => {
