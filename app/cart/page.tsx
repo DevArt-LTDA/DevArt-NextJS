@@ -48,15 +48,29 @@ export default function CartPage() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Cargar carrito una vez
+  // Index de imágenes por id para completar faltantes
+  const imgById = useMemo(() => {
+    const m = new Map<number, string>();
+    for (const p of productos) {
+      m.set(p.id, typeof p.img === "string" ? p.img : p.img.src);
+    }
+    return m;
+  }, []);
+
+  // Cargar carrito una vez y completar img faltantes
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
       const parsed: Item[] = raw ? JSON.parse(raw) : [];
-      setItems(parsed);
+      const withImg = parsed.map((i) => ({
+        ...i,
+        img: i.img || imgById.get(i.id) || "/DevArt.png",
+      }));
+      setItems(withImg);
     } catch {
       setItems([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persistir + badge
@@ -127,6 +141,7 @@ export default function CartPage() {
         copy[i] = { ...copy[i], quantity: copy[i].quantity + 1 };
         return copy;
       }
+      // p.img ya viene desde el catálogo
       return [...curr, { ...p, quantity: 1 }];
     });
   }
