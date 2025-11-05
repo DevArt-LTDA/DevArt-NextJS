@@ -391,33 +391,35 @@ export default function CartPage() {
             <div className="modal-body">
               <div className="pay-grid">
                 <div className="field">
-                  <label>Nombre y Apellido</label>
+                  <label htmlFor="pay-nombre">Nombre y Apellido</label>
                   <input
+                    id="pay-nombre"
                     type="text"
                     value={form.nombre}
                     onChange={(e) => onChange("nombre", e.target.value)}
                     placeholder="Tu nombre"
+                    autoComplete="name"
                   />
                 </div>
+
                 <div className="field">
-                  <label>Correo</label>
+                  <label htmlFor="pay-email">Correo</label>
                   <input
+                    id="pay-email"
                     type="email"
                     value={form.email}
                     onChange={(e) => onChange("email", e.target.value)}
                     placeholder="tu-email@ejemplo.com"
+                    autoComplete="email"
                   />
                 </div>
-                <div className="field">
-                  <label>Método de Pago</label>
+
+                <div className="field col-2">
+                  <label htmlFor="pay-metodo">Método de Pago</label>
                   <select
+                    id="pay-metodo"
                     value={form.metodo}
-                    onChange={(e) =>
-                      onChange(
-                        "metodo",
-                        e.target.value as CheckoutForm["metodo"]
-                      )
-                    }
+                    onChange={(e) => onChange("metodo", e.target.value as any)}
                   >
                     <option value="">Selecciona…</option>
                     <option value="Webpay">Webpay</option>
@@ -425,22 +427,27 @@ export default function CartPage() {
                     <option value="PayPal">PayPal</option>
                   </select>
                 </div>
-                <div className="field checkbox">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={form.aceptar}
-                      onChange={(e) => onChange("aceptar", e.target.checked)}
-                    />{" "}
+
+                <div className="checkbox-row col-2">
+                  <input
+                    id="pay-aceptar"
+                    type="checkbox"
+                    checked={form.aceptar}
+                    onChange={(e) => onChange("aceptar", e.target.checked)}
+                  />
+                  <label htmlFor="pay-aceptar">
                     Acepto términos y condiciones
                   </label>
                 </div>
-                <div className="pay-total">
+
+                <div className="pay-total col-2">
                   Total a pagar: <strong>{CLP(total)}</strong>
                 </div>
-                {payErr && <div className="pay-error">{payErr}</div>}
+
+                {payErr && <div className="pay-error col-2">{payErr}</div>}
               </div>
             </div>
+
             <div className="modal-footer">
               <button
                 className="modal-btn cancel"
