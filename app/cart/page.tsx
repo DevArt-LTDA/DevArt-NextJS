@@ -19,10 +19,13 @@ type Item = {
   img?: string;
 };
 
+const METODOS = ["Webpay", "Transferencia", "PayPal"] as const;
+type MetodoPago = (typeof METODOS)[number] | "";
+
 type CheckoutForm = {
   nombre: string;
   email: string;
-  metodo: "Webpay" | "Transferencia" | "PayPal" | "";
+  metodo: MetodoPago;
   aceptar: boolean;
 };
 
@@ -419,12 +422,16 @@ export default function CartPage() {
                   <select
                     id="pay-metodo"
                     value={form.metodo}
-                    onChange={(e) => onChange("metodo", e.target.value as any)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      onChange("metodo", e.target.value as MetodoPago)
+                    }
                   >
                     <option value="">Selecciona…</option>
-                    <option value="Webpay">Webpay</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="PayPal">PayPal</option>
+                    {METODOS.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
