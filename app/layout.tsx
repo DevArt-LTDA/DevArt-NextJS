@@ -5,27 +5,65 @@ import Image from "next/image";
 import LoginImg from "./img/Login-user-icon.png";
 import CartImg from "./img/icon-cart.png";
 import CartInit from "./ui/cartInit";
-import UserInit from "./ui/userInit";
 import "./globals.css";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+
+type StoredUser = { name?: string; displayName?: string; email?: string };
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathnameRaw = usePathname() || "/";
-  const pathname = pathnameRaw.toLowerCase();
+  const pathname = (usePathname() || "/").toLowerCase();
+  const isAuth =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
 
-  // Cubre /login, /login?x=, /register, /register/...
-  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const [userName, setUserName] = useState<string | null>(null);
+
+  // Cargar nombre y mantenerse sincronizado
+  useEffect(() => {
+    const load = () => {
+      try {
+        const raw = localStorage.getItem("user");
+        if (!raw) return setUserName(null);
+        const u: StoredUser = JSON.parse(raw);
+        const n =
+          u.displayName || u.name || (u.email ? u.email.split("@")[0] : "");
+        setUserName(n && n.trim() !== "" ? n : null);
+      } catch {
+        setUserName(null);
+      }
+    };
+
+    load();
+
+    // Cambios en otras pestañas
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "user") load();
+    };
+    window.addEventListener("storage", onStorage);
+
+    // Aviso inmediato en la misma pestaña tras login/logout
+    const onUser = () => load();
+    window.addEventListener("devart:user", onUser as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("devart:user", onUser as EventListener);
+    };
+  }, []);
 
   return (
     <html lang="es">
       <body className={isAuth ? "auth-layout" : ""}>
         {!isAuth && (
           <div className="NavBar">
-            <div className="logo" style={{ position: "absolute", left: 50, top: 10 }} />
+            <div
+              className="logo"
+              style={{ position: "absolute", left: 50, top: 10 }}
+            />
             <Link href="/">Home</Link>
             <Link href="/products">Productos</Link>
             <Link href="/about">Nosotros</Link>
@@ -40,10 +78,13 @@ export default function RootLayout({
             </div>
 
             <div className="Login-icon">
-              <Link href="/login">
+              <Link href={userName ? "/account" : "/login"}>
                 <Image src={LoginImg} alt="Login" width={30} priority />
-                <span className="Login-text" style={{ position: "relative", top: -10 }}>
-                  Login
+                <span
+                  className="Login-text"
+                  style={{ position: "relative", top: -10 }}
+                >
+                  {userName ?? "Login"}
                 </span>
               </Link>
             </div>
@@ -73,7 +114,6 @@ export default function RootLayout({
         )}
 
         <CartInit />
-        <UserInit />
       </body>
     </html>
   );
