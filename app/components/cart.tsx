@@ -1,36 +1,25 @@
+// app/components/cart.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import "../css/cart.css";
+import { productos } from "./products";
 
 type Item = {
   id: number;
   nombre: string;
   precio: number; // CLP unitario
   quantity: number; // cantidad
-  img?: string;
+  img?: string; // en carrito usamos string
 };
 
-const RECOMENDADOS: Array<Omit<Item, "quantity">> = [
-  {
-    id: 1,
-    nombre: "Servicio de BIGDATA",
-    precio: 50000,
-    img: "/ChatGPTbigdata.png",
-  },
-  {
-    id: 2,
-    nombre: "Desarrollo Web Art-Técnico",
-    precio: 80000,
-    img: "/ChatGPTdevweb.png",
-  },
-  {
-    id: 3,
-    nombre: "Análisis de Datos",
-    precio: 60000,
-    img: "/ChatGPTanalisisdata.png",
-  },
-];
+// Recomendados desde el catálogo (StaticImageData -> string)
+const RECOMENDADOS: Array<Omit<Item, "quantity">> = productos.map((p) => ({
+  id: p.id,
+  nombre: p.nombre,
+  precio: p.precio,
+  img: typeof p.img === "string" ? p.img : p.img.src,
+}));
 
 function CLP(n: number) {
   try {
@@ -50,10 +39,7 @@ export default function Cart() {
     open: boolean;
     action: "vaciar" | "eliminar" | null;
     id?: number;
-  }>({
-    open: false,
-    action: null,
-  });
+  }>({ open: false, action: null });
 
   // Cargar carrito
   useEffect(() => {
@@ -65,6 +51,13 @@ export default function Cart() {
       setItems([]);
     }
   }, []);
+
+  // Persistir
+  useEffect(() => {
+    try {
+      localStorage.setItem("cart", JSON.stringify(items));
+    } catch {}
+  }, [items]);
 
   const subtotal = useMemo(
     () => items.reduce((t, i) => t + i.precio * i.quantity, 0),
@@ -215,7 +208,7 @@ export default function Cart() {
               <div className="summary-line">
                 <span>Descuento:</span>
                 <span id="discount" className="discount-amount">
-                  {CLP(descuento)}
+                  {CLP(0)}
                 </span>
               </div>
               <div className="summary-line">

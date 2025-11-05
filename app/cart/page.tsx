@@ -1,15 +1,14 @@
+// app/cart/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import "../css/cart.css";
+import { productos } from "../components/products";
 
-// Augmentación de Window para el badge del carrito
 declare global {
   interface Window {
-    DevArtCarrito?: {
-      actualizar: () => void;
-    };
+    DevArtCarrito?: { actualizar: () => void };
   }
 }
 
@@ -18,29 +17,16 @@ type Item = {
   nombre: string;
   precio: number; // CLP unitario
   quantity: number; // cantidad
-  img?: string; // opcional
+  img?: string;
 };
 
-const recomendados: Array<Omit<Item, "quantity">> = [
-  {
-    id: 1,
-    nombre: "Servicio de BIGDATA",
-    precio: 50000,
-    img: "/ChatGPTbigdata.png",
-  },
-  {
-    id: 2,
-    nombre: "Desarrollo Web Art-Técnico",
-    precio: 80000,
-    img: "/ChatGPTdevweb.png",
-  },
-  {
-    id: 3,
-    nombre: "Análisis de Datos",
-    precio: 60000,
-    img: "/ChatGPTanalisisdata.png",
-  },
-];
+// Recomendados desde catálogo (StaticImageData -> string)
+const recomendados: Array<Omit<Item, "quantity">> = productos.map((p) => ({
+  id: p.id,
+  nombre: p.nombre,
+  precio: p.precio,
+  img: typeof p.img === "string" ? p.img : p.img.src,
+}));
 
 function CLP(n: number) {
   try {
@@ -60,10 +46,7 @@ export default function CartPage() {
     open: boolean;
     action: "vaciar" | "eliminar" | null;
     id?: number;
-  }>({
-    open: false,
-    action: null,
-  });
+  }>({ open: false, action: null });
 
   // Cargar carrito una vez
   useEffect(() => {
@@ -76,7 +59,7 @@ export default function CartPage() {
     }
   }, []);
 
-  // Persistir en localStorage y actualizar badge
+  // Persistir + badge
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
@@ -93,7 +76,7 @@ export default function CartPage() {
   const descuento = 0;
   const total = subtotal - descuento;
 
-  function inc(id: number) {
+  const inc = (id: number) =>
     setItems((curr) =>
       curr.map((i) =>
         i.id === id
@@ -101,8 +84,7 @@ export default function CartPage() {
           : i
       )
     );
-  }
-  function dec(id: number) {
+  const dec = (id: number) =>
     setItems((curr) =>
       curr
         .map((i) =>
@@ -112,15 +94,14 @@ export default function CartPage() {
         )
         .filter((i) => i.quantity > 0)
     );
-  }
-  function setQty(id: number, v: string) {
+  const setQty = (id: number, v: string) => {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
       curr
         .map((i) => (i.id === id ? { ...i, quantity: q } : i))
         .filter((i) => i.quantity > 0)
     );
-  }
+  };
 
   function eliminar(id: number) {
     setAsk({ open: true, action: "eliminar", id });
@@ -259,7 +240,6 @@ export default function CartPage() {
         </section>
       )}
 
-      {/* Recomendados */}
       <section
         className="recommended-section"
         style={{ display: estaVacio ? "none" : "block" }}
@@ -282,7 +262,6 @@ export default function CartPage() {
         </div>
       </section>
 
-      {/* Modal */}
       {ask.open && (
         <div className="modal-overlay">
           <div className="modal">

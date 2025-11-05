@@ -1,4 +1,4 @@
-// app/hooks/products.tsx
+// app/components/products.tsx
 import { StaticImageData } from "next/image";
 import bigdata from "../img/ChatGPTbigdata.png";
 import devweb from "../img/ChatGPTdevweb.png";
@@ -13,7 +13,7 @@ export type Producto = {
   features: string[];
 };
 
-export const productos: Producto[] = [
+const productos: Producto[] = [
   {
     id: 1,
     nombre: "Servicio de BIGDATA",
@@ -42,3 +42,5 @@ export const productos: Producto[] = [
     features: ["Diseño Personalizado", "KPI's", "Insights"],
   },
 ];
+
+export { productos };
