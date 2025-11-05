@@ -27,6 +27,7 @@ export default function RootLayout({
             ></div>
 
             <Link href="/">Home</Link>
+            <Link href="/category">Categorias</Link>
             <Link href="/products">Productos</Link>
             <Link href="/about">Nosotros</Link>
             <Link href="/blog">Blog</Link>
