@@ -53,12 +53,12 @@
 }
 .hist-head {
   padding: 12px 16px;
-  background: #111;
+  background: #ffffff;
   font-weight: 600;
 }
 .hist-list .hist-row {
   padding: 12px 16px;
-  border-top: 1px solid #222;
+  border-top: 1px solid #e46ade;
 }
 .h-prod {
   display: flex;
