@@ -10,10 +10,10 @@ type Item = {
   nombre: string;
   precio: number; // CLP unitario
   quantity: number; // cantidad
-  img?: string; // en carrito usamos string
+  img?: string;
 };
 
-// Recomendados desde el catálogo (StaticImageData -> string)
+// Recomendados (StaticImageData -> string)
 const RECOMENDADOS: Array<Omit<Item, "quantity">> = productos.map((p) => ({
   id: p.id,
   nombre: p.nombre,
@@ -41,12 +41,20 @@ export default function Cart() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Cargar carrito
+  // Cargar carrito y normalizar tipos
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed: Item[] = raw ? JSON.parse(raw) : [];
-      setItems(parsed);
+      const parsed: any[] = raw ? JSON.parse(raw) : [];
+      setItems(
+        parsed.map((i) => ({
+          id: Number(i.id),
+          nombre: String(i.nombre ?? ""),
+          precio: Number(i.precio) || 0,
+          quantity: Number(i.quantity) || 0,
+          img: i.img,
+        }))
+      );
     } catch {
       setItems([]);
     }
@@ -75,6 +83,7 @@ export default function Cart() {
       )
     );
   }
+
   function dec(id: number) {
     setItems((curr) =>
       curr
@@ -86,6 +95,7 @@ export default function Cart() {
         .filter((i) => i.quantity > 0)
     );
   }
+
   function setQty(id: number, v: string) {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
@@ -101,12 +111,19 @@ export default function Cart() {
   function vaciar() {
     setAsk({ open: true, action: "vaciar" });
   }
+
   function confirmar() {
-    if (ask.action === "vaciar") setItems([]);
-    if (ask.action === "eliminar" && ask.id != null)
-      setItems((curr) => curr.filter((i) => i.id !== ask.id));
+    setItems((curr) => {
+      if (ask.action === "vaciar") return [];
+      if (ask.action === "eliminar" && ask.id != null) {
+        const idNum = Number(ask.id);
+        return curr.filter((i) => Number(i.id) !== idNum);
+      }
+      return curr;
+    });
     setAsk({ open: false, action: null });
   }
+
   function cancelar() {
     setAsk({ open: false, action: null });
   }

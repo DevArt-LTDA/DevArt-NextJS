@@ -48,7 +48,7 @@ export default function CartPage() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Index de imágenes por id para completar faltantes
+  // Índice imágenes por id
   const imgById = useMemo(() => {
     const m = new Map<number, string>();
     for (const p of productos) {
@@ -57,14 +57,17 @@ export default function CartPage() {
     return m;
   }, []);
 
-  // Cargar carrito una vez y completar img faltantes
+  // Cargar carrito una vez y normalizar tipos
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed: Item[] = raw ? JSON.parse(raw) : [];
-      const withImg = parsed.map((i) => ({
-        ...i,
-        img: i.img || imgById.get(i.id) || "/DevArt.png",
+      const parsed: any[] = raw ? JSON.parse(raw) : [];
+      const withImg: Item[] = parsed.map((i) => ({
+        id: Number(i.id),
+        nombre: String(i.nombre ?? ""),
+        precio: Number(i.precio) || 0,
+        quantity: Number(i.quantity) || 0,
+        img: i.img || imgById.get(Number(i.id)) || "/DevArt.png",
       }));
       setItems(withImg);
     } catch {
@@ -73,7 +76,7 @@ export default function CartPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persistir + badge
+  // Persistir + actualizar badge
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
@@ -98,6 +101,7 @@ export default function CartPage() {
           : i
       )
     );
+
   const dec = (id: number) =>
     setItems((curr) =>
       curr
@@ -108,6 +112,7 @@ export default function CartPage() {
         )
         .filter((i) => i.quantity > 0)
     );
+
   const setQty = (id: number, v: string) => {
     const q = Math.max(0, Math.min(999, Number(v) || 0));
     setItems((curr) =>
@@ -123,12 +128,19 @@ export default function CartPage() {
   function vaciar() {
     setAsk({ open: true, action: "vaciar" });
   }
+
   function confirmar() {
-    if (ask.action === "vaciar") setItems([]);
-    if (ask.action === "eliminar" && ask.id != null)
-      setItems((curr) => curr.filter((i) => i.id !== ask.id));
+    setItems((curr) => {
+      if (ask.action === "vaciar") return [];
+      if (ask.action === "eliminar" && ask.id != null) {
+        const idNum = Number(ask.id);
+        return curr.filter((i) => Number(i.id) !== idNum);
+      }
+      return curr;
+    });
     setAsk({ open: false, action: null });
   }
+
   function cancelar() {
     setAsk({ open: false, action: null });
   }
@@ -141,7 +153,6 @@ export default function CartPage() {
         copy[i] = { ...copy[i], quantity: copy[i].quantity + 1 };
         return copy;
       }
-      // p.img ya viene desde el catálogo
       return [...curr, { ...p, quantity: 1 }];
     });
   }
