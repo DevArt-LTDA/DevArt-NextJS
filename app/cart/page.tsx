@@ -15,12 +15,20 @@ declare global {
 type Item = {
   id: number;
   nombre: string;
-  precio: number; // CLP unitario
-  quantity: number; // cantidad
+  precio: number;
+  quantity: number;
   img?: string;
 };
 
-// Recomendados desde catálogo (StaticImageData -> string)
+type Stored = {
+  id?: unknown;
+  nombre?: unknown;
+  precio?: unknown;
+  quantity?: unknown;
+  img?: unknown;
+};
+
+// Recomendados
 const recomendados: Array<Omit<Item, "quantity">> = productos.map((p) => ({
   id: p.id,
   nombre: p.nombre,
@@ -48,39 +56,44 @@ export default function CartPage() {
     id?: number;
   }>({ open: false, action: null });
 
-  // Index de imágenes por id para completar faltantes
   const imgById = useMemo(() => {
     const m = new Map<number, string>();
-    for (const p of productos) {
+    for (const p of productos)
       m.set(p.id, typeof p.img === "string" ? p.img : p.img.src);
-    }
     return m;
   }, []);
 
-  // Cargar carrito una vez y completar img faltantes
+  // Cargar carrito sin `any`
   useEffect(() => {
     try {
       const raw = localStorage.getItem("cart");
-      const parsed: Item[] = raw ? JSON.parse(raw) : [];
-      const withImg = parsed.map((i) => ({
-        ...i,
-        img: i.img || imgById.get(i.id) || "/DevArt.png",
-      }));
-      setItems(withImg);
+      const parsed = JSON.parse(raw ?? "[]") as unknown;
+      const arr: Stored[] = Array.isArray(parsed) ? (parsed as Stored[]) : [];
+      const norm: Item[] = arr
+        .map((i) => ({
+          id: Number(i.id ?? 0),
+          nombre: typeof i.nombre === "string" ? i.nombre : "",
+          precio: Number(i.precio ?? 0),
+          quantity: Number(i.quantity ?? 0),
+          img:
+            typeof i.img === "string"
+              ? i.img
+              : imgById.get(Number(i.id ?? 0)) || "/DevArt.png",
+        }))
+        .filter((x) => x.id > 0 && x.quantity > 0);
+      setItems(norm);
     } catch {
       setItems([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persistir + badge
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));
     } catch {}
-    if (typeof window !== "undefined" && window.DevArtCarrito?.actualizar) {
+    if (typeof window !== "undefined" && window.DevArtCarrito?.actualizar)
       window.DevArtCarrito.actualizar();
-    }
   }, [items]);
 
   const subtotal = useMemo(
@@ -124,28 +137,28 @@ export default function CartPage() {
     setAsk({ open: true, action: "vaciar" });
   }
   function confirmar() {
-    if (ask.action === "vaciar") setItems([]);
-    if (ask.action === "eliminar" && ask.id != null)
-      setItems((curr) => curr.filter((i) => i.id !== ask.id));
+    setItems((curr) => {
+      if (ask.action === "vaciar") return [];
+      if (ask.action === "eliminar" && ask.id != null)
+        return curr.filter((i) => i.id !== ask.id);
+      return curr;
+    });
     setAsk({ open: false, action: null });
   }
   function cancelar() {
     setAsk({ open: false, action: null });
   }
-
   function agregarRecomendado(p: Omit<Item, "quantity">) {
     setItems((curr) => {
-      const i = curr.findIndex((x) => x.id === p.id);
-      if (i >= 0) {
+      const idx = curr.findIndex((x) => x.id === p.id);
+      if (idx >= 0) {
         const copy = [...curr];
-        copy[i] = { ...copy[i], quantity: copy[i].quantity + 1 };
+        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + 1 };
         return copy;
       }
-      // p.img ya viene desde el catálogo
       return [...curr, { ...p, quantity: 1 }];
     });
   }
-
   function checkout() {
     alert("Demo: aquí iría la pasarela de pago. Total " + CLP(total));
   }
@@ -178,7 +191,6 @@ export default function CartPage() {
               <span>Subtotal</span>
               <span>Acciones</span>
             </div>
-
             <div className="cart-items-list">
               {items.map((i) => (
                 <div key={i.id} className="cart-row">
@@ -189,9 +201,7 @@ export default function CartPage() {
                       <div className="muted">ID #{i.id}</div>
                     </div>
                   </div>
-
                   <div className="c-price">{CLP(i.precio)}</div>
-
                   <div className="c-qty">
                     <button onClick={() => dec(i.id)} aria-label="Disminuir">
                       −
@@ -205,9 +215,7 @@ export default function CartPage() {
                       +
                     </button>
                   </div>
-
                   <div className="c-sub">{CLP(i.precio * i.quantity)}</div>
-
                   <div className="c-actions">
                     <button
                       className="link danger"
