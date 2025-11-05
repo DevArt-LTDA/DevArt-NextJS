@@ -9,29 +9,45 @@ declare global {
 
 export default function CartInit() {
   useEffect(() => {
-    let cart: Array<{ quantity: number }> = [];
-    try {
-      cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    } catch {}
+    const actualizarContadorCarrito = () => {
+      let total = 0;
+      try {
+        const raw = localStorage.getItem("cart");
+        const arr: Array<{ quantity?: number }> = raw ? JSON.parse(raw) : [];
+        total = arr.reduce((t, it) => t + (Number(it.quantity) || 0), 0);
+      } catch {}
 
-    function actualizarContadorCarrito() {
-      const contador = document.querySelector(
-        ".cart-count"
-      ) as HTMLElement | null;
-      if (!contador) return;
-      const total = cart.reduce((t, it) => t + (Number(it.quantity) || 0), 0);
-      contador.textContent = String(total);
-      contador.style.display = total > 0 ? "inline" : "none";
-    }
+      const badge = document.querySelector<HTMLElement>(".cart-count");
+      if (!badge) return;
+      badge.textContent = String(total);
+      badge.style.display = total > 0 ? "inline" : "none";
+    };
 
-    if (typeof window !== "undefined") {
-      window.DevArtCarrito = {
-        ...(window.DevArtCarrito ?? {}),
-        actualizar: actualizarContadorCarrito,
-      };
-    }
+    // expone API global para que pages/components disparen la actualización
+    window.DevArtCarrito = {
+      ...(window.DevArtCarrito ?? {}),
+      actualizar: actualizarContadorCarrito,
+    };
 
+    // inicial
     actualizarContadorCarrito();
+
+    // cambios desde otras pestañas
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "cart") actualizarContadorCarrito();
+    };
+    window.addEventListener("storage", onStorage);
+
+    // refresca al volver al tab
+    document.addEventListener("visibilitychange", actualizarContadorCarrito);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener(
+        "visibilitychange",
+        actualizarContadorCarrito
+      );
+    };
   }, []);
 
   return null;
