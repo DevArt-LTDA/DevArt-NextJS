@@ -22,7 +22,15 @@ export default function RootLayout({
 
   const [userName, setUserName] = useState<string | null>(null);
 
-  // Cargar nombre y mantenerse sincronizado
+  // Alterna clase en <body> de forma imperativa para evitar que quede pegada
+  useEffect(() => {
+    const cls = "auth-layout";
+    if (isAuth) document.body.classList.add(cls);
+    else document.body.classList.remove(cls);
+    return () => document.body.classList.remove(cls);
+  }, [isAuth]);
+
+  // Carga y sincroniza nombre de usuario
   useEffect(() => {
     const load = () => {
       try {
@@ -36,19 +44,13 @@ export default function RootLayout({
         setUserName(null);
       }
     };
-
     load();
-
-    // Cambios en otras pestañas
     const onStorage = (e: StorageEvent) => {
       if (e.key === "user") load();
     };
-    window.addEventListener("storage", onStorage);
-
-    // Aviso inmediato en la misma pestaña tras login/logout
     const onUser = () => load();
+    window.addEventListener("storage", onStorage);
     window.addEventListener("devart:user", onUser as EventListener);
-
     return () => {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("devart:user", onUser as EventListener);
@@ -57,7 +59,7 @@ export default function RootLayout({
 
   return (
     <html lang="es">
-      <body className={isAuth ? "auth-layout" : ""}>
+      <body>
         {!isAuth && (
           <div className="NavBar">
             <div
