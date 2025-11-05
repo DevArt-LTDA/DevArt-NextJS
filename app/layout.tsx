@@ -5,6 +5,7 @@ import Image from "next/image";
 import LoginImg from "./img/Login-user-icon.png";
 import CartImg from "./img/icon-cart.png";
 import CartInit from "./ui/cartInit";
+import UserInit from "./ui/userInit";
 import "./globals.css";
 import { usePathname } from "next/navigation";
 
@@ -52,9 +53,7 @@ export default function RootLayout({
             </div>
           </div>
         )}
-
         {children}
-
         {!isLogin && !isRegister && (
           <footer>
             <div className="footer-content">
@@ -74,8 +73,8 @@ export default function RootLayout({
             </div>
           </footer>
         )}
-
         <CartInit />
+        <UserInit /> {/* <-- monta el actualizador del nombre */}
       </body>
     </html>
   );
