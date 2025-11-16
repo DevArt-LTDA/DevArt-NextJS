@@ -106,7 +106,6 @@ export default function CartPage() {
     }
   }, [imgById]);
 
-  // Persistir carrito y actualizar badge externo si existe
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(items));

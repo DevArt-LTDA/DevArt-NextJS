@@ -2,6 +2,7 @@ import Image from "next/image";
 import bigdata from "./img/ChatGPTbigdata.png";
 import devweb from "./img/ChatGPTdevweb.png";
 import analisis from "./img/ChatGPTanalisisdata.png";
+/* "./img/ChatGPTanalisisdata.png" */
 
 export default function Page() {
   return (
