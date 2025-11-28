@@ -27,6 +27,7 @@ export default async function ServerDataFetcher() {
       }
     });
 
+
     if (!response.ok) {
       return (
         <div style={{ color: "red", padding: "20px" }}>
@@ -39,7 +40,8 @@ export default async function ServerDataFetcher() {
     }
 
     const data = await response.json();
-    const usuarios = data;
+    const usuarios = data._embedded.usuariosList;
+    console.log("Datos de usuarios obtenidos:", usuarios);
 
     if (!usuarios || usuarios.length === 0) {
       return <div style={{ padding: "20px" }}>No hay usuarios disponibles</div>;
@@ -47,15 +49,14 @@ export default async function ServerDataFetcher() {
 
     return (
       <ul style={{ listStyle: "none", padding: "20px" }}>
-        {usuarios.map((item: Catalogo) => (
-          <li key={item.id} style={{ 
+        {usuarios.map((item: Catalogo, idx: number) => (
+          <li key={item.id ?? item.rut ?? idx} style={{ 
             marginBottom: "15px", 
             padding: "15px", 
             border: "1px solid #e0e0e0",
             borderRadius: "5px",
             backgroundColor: "white"
           }}>
-            <div><strong>ID:</strong> {item.id}</div>
             <div><strong>Rut:</strong> {item.rut}</div>
             <div><strong>Primer Nombre:</strong> {item.primerNombre}</div>
             <div><strong>Segundo Nombre:</strong> {item.segundoNombre}</div>

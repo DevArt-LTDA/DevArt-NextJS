@@ -42,8 +42,8 @@ export default async function ServerDataFetcher() {
 
     return (
       <ul style={{ listStyle: "none", padding: "20px" }}>
-        {catalogos.map((item: Catalogo) => (
-          <li key={item.id} style={{ 
+        {catalogos.map((item: Catalogo, idx: number) => (
+          <li key={item.id ?? item.nombre ?? idx} style={{ 
             marginBottom: "15px", 
             padding: "15px", 
             border: "1px solid #e0e0e0",
