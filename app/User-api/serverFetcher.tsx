@@ -1,6 +1,6 @@
 "use server";
 
-type Catalogo = {
+type Usuario = {
   id: number;
   rut: string;
   primerNombre: string;
@@ -49,7 +49,7 @@ export default async function ServerDataFetcher() {
 
     return (
       <ul style={{ listStyle: "none", padding: "20px" }}>
-        {usuarios.map((item: Catalogo, idx: number) => (
+        {usuarios.map((item: Usuario, idx: number) => (
           <li key={item.id ?? item.rut ?? idx} style={{ 
             marginBottom: "15px", 
             padding: "15px", 
