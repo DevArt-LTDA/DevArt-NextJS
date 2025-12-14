@@ -20,13 +20,13 @@ async function readTransactions() {
     await ensureDbDirectory();
     const data = await fs.readFile(DB_PATH, 'utf-8');
     return JSON.parse(data);
-  } catch (error) {
+  } catch {
     return [];
   }
 }
 
 // Guardar transacciones
-async function writeTransactions(transactions: any[]) {
+async function writeTransactions(transactions: Array<Record<string, unknown>>) {
   try {
     await ensureDbDirectory();
     await fs.writeFile(DB_PATH, JSON.stringify(transactions, null, 2));
@@ -45,7 +45,7 @@ export async function GET() {
       data: transactions,
       count: transactions.length 
     });
-  } catch (error) {
+  } catch {
     return Response.json(
       { success: false, error: 'Error al leer transacciones' },
       { status: 500 }
@@ -87,7 +87,7 @@ export async function PUT(request: Request) {
     const { token, ...updateData } = await request.json();
     const transactions = await readTransactions();
     
-    const index = transactions.findIndex((t: any) => t.token === token);
+    const index = transactions.findIndex((t: { token?: string }) => t.token === token);
     if (index === -1) {
       return Response.json(
         { success: false, error: 'Transacción no encontrada' },

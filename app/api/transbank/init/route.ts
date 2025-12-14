@@ -44,14 +44,22 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error al crear transacción:', error);
     return Response.json(
-      { error: 'Error al crear la transacción', details: (error as any).message },
+      { error: 'Error al crear la transacción', details: error instanceof Error ? error.message : 'Error desconocido' },
       { status: 500 }
     );
   }
 }
 
-// Funci\u00f3n auxiliar para guardar transacciones en microservicio
-async function saveTransaction(transactionData: any) {
+// Función auxiliar para guardar transacciones en microservicio
+async function saveTransaction(transactionData: {
+  sessionId: string;
+  amount: number;
+  buyOrder: string;
+  token: string;
+  url: string;
+  status: string;
+  createdAt: string;
+}) {
   try {
     const MICROSERVICE_URL = 'https://microserviciotransacciones-production-9b80.up.railway.app/api/v1/transacciones';
     
