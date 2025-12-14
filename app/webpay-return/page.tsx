@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function WebpayReturnPage() {
+function WebpayReturnContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Procesando tu transacción...');
@@ -159,5 +159,18 @@ export default function WebpayReturnPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function WebpayReturnPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+        <h1>Procesando transacción...</h1>
+        <div style={{ fontSize: '48px', marginTop: '20px' }}>⏳</div>
+      </div>
+    }>
+      <WebpayReturnContent />
+    </Suspense>
   );
 }
