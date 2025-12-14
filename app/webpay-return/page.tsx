@@ -9,7 +9,12 @@ export default function WebpayReturnPage() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Procesando tu transacción...');
-  const [transactionData, setTransactionData] = useState<any>(null);
+  const [transactionData, setTransactionData] = useState<{
+    success?: boolean;
+    message?: string;
+    authorizationCode?: string;
+    amount?: number;
+  } | null>(null);
 
   useEffect(() => {
     const confirmTransaction = async () => {
@@ -41,7 +46,7 @@ export default function WebpayReturnPage() {
         }
       } catch (error) {
         setStatus('error');
-        setMessage(`❌ Error al procesar: ${(error as any).message}`);
+        setMessage(`❌ Error al procesar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       }
     };
 

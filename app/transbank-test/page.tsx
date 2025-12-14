@@ -6,7 +6,13 @@ import Link from 'next/link';
 export default function TransbankTestPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [transactionData, setTransactionData] = useState<any>(null);
+  const [transactionData, setTransactionData] = useState<{
+    token?: string;
+    url?: string;
+    redirectUrl?: string;
+    transactionId?: number;
+    count?: number;
+  } | null>(null);
 
   const handleInitTransaction = async () => {
     setLoading(true);
@@ -41,7 +47,7 @@ export default function TransbankTestPage() {
         }
       }, 2000);
     } catch (error) {
-      setMessage(`❌ Error de conexión: ${(error as any).message}`);
+      setMessage(`❌ Error de conexión: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
@@ -54,7 +60,7 @@ export default function TransbankTestPage() {
       setTransactionData(data);
       setMessage(`Se encontraron ${data.count || 0} transacciones`);
     } catch (error) {
-      setMessage(`Error: ${(error as any).message}`);
+      setMessage(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
