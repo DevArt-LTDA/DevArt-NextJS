@@ -17,7 +17,7 @@ type Usuario = {
 
 export default async function ServerDataFetcher() {
   const api_url = "https://microserviciousuarios-production.up.railway.app/api/v1/usuarios";
-  
+
   try {
     const response = await fetch(api_url, { 
       cache: "no-store",

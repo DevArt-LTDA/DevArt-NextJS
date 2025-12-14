@@ -1,18 +1,17 @@
 "use server";
 
-type Catalogo = {
+type Transaccion = {
   id: number;
-  rut: string;
-  primerNombre: string;
-  segundoNombre: string;
-  primApellido: string;
-  segApellido: string;
-  telefono: string;
-  correo: string;
-  fechaNacimiento: string;
-  rol: string;
-  departamento: string;
-  cargo: string;
+  sessionId: string;
+  amount: number;
+  token: string;
+  url: string;
+  status: string;
+  responseCode?: string;
+  authorizationCode?: string;
+  cardLastFourDigits?: string;
+  createdAt: string;
+  updatedAt?: string;
 };
 
 export default async function ServerDataFetcher() {
@@ -27,59 +26,62 @@ export default async function ServerDataFetcher() {
       }
     });
 
-
     if (!response.ok) {
       return (
         <div style={{ color: "red", padding: "20px" }}>
-          <h3>Error al conectar con el microservicio Usuarios</h3>
+          <h3>Error al conectar con el servidor de transacciones</h3>
           <p>Status: {response.status} - {response.statusText}</p>
           <p>URL: {api_url}</p>
-          <p>Verifica que el microservicio esté ejecutándose y acepte peticiones GET</p>
+          <p>Verifica que la API esté ejecutándose correctamente</p>
         </div>
       );
     }
 
     const data = await response.json();
-    const usuarios = data._embedded.usuariosList;
-    console.log("Datos de usuarios obtenidos:", usuarios);
+    // El microservicio retorna un array directo
+    const transacciones = Array.isArray(data) ? data : data._embedded?.transaccionesList || data.data || [];
+    console.log("Datos de transacciones obtenidos:", transacciones);
 
-    if (!usuarios || usuarios.length === 0) {
-      return <div style={{ padding: "20px" }}>No hay usuarios disponibles</div>;
+    if (!transacciones || transacciones.length === 0) {
+      return <div style={{ padding: "20px" }}>No hay transacciones registradas</div>;
     }
 
     return (
-      <ul style={{ listStyle: "none", padding: "20px" }}>
-        {usuarios.map((item: Catalogo, idx: number) => (
-          <li key={item.id ?? item.rut ?? idx} style={{ 
-            marginBottom: "15px", 
-            padding: "15px", 
-            border: "1px solid #e0e0e0",
-            borderRadius: "5px",
-            backgroundColor: "white"
-          }}>
-            <div><strong>Rut:</strong> {item.rut}</div>
-            <div><strong>Primer Nombre:</strong> {item.primerNombre}</div>
-            <div><strong>Segundo Nombre:</strong> {item.segundoNombre}</div>
-            <div><strong>Primer Apellido:</strong> {item.primApellido}</div>
-            <div><strong>Segundo Apellido:</strong> {item.segApellido}</div>
-            <div><strong>Teléfono:</strong> {item.telefono || 'N/A'}</div>
-            <div><strong>Correo:</strong> {item.correo}</div>
-            <div><strong>Fecha de Nacimiento:</strong> {item.fechaNacimiento}</div>
-            <div><strong>Rol:</strong> {item.rol}</div>
-            <div><strong>Departamento:</strong> {item.departamento}</div>
-            <div><strong>Cargo:</strong> {item.cargo}</div>
-          </li>
-        ))}
-      </ul>
+      <div style={{ padding: "20px" }}>
+        <h2 style={{ marginBottom: "20px" }}>Total de transacciones: {transacciones.length}</h2>
+        <ul style={{ listStyle: "none", padding: "0" }}>
+          {transacciones.map((item: any) => (
+            <li key={item.id} style={{ 
+              marginBottom: "15px", 
+              padding: "15px", 
+              border: "1px solid #e0e0e0",
+              borderRadius: "5px",
+              backgroundColor: item.aprobado ? "#f0f9ff" : "#fff9f0"
+            }}>
+              <div><strong>ID:</strong> {item.id}</div>
+              <div><strong>Monto:</strong> ${(item.monto || 0).toLocaleString('es-CL')}</div>
+              <div><strong>Tipo:</strong> {item.tipo}</div>
+              <div><strong>Usuario RUT:</strong> {item.usuarioRut}</div>
+              <div><strong>Estado:</strong> <span style={{ 
+                padding: "4px 8px", 
+                borderRadius: "3px",
+                backgroundColor: item.aprobado ? '#90EE90' : '#FFB6C6'
+              }}>{item.aprobado ? 'APROBADO' : 'PENDIENTE'}</span></div>
+              <div><strong>Descripción:</strong> {item.descripcion}</div>
+              <div><strong>Fecha:</strong> {new Date(item.fecha).toLocaleString('es-CL')}</div>
+            </li>
+          ))}
+        </ul>
+      </div>
     );
     
   } catch (error) {
     return (
       <div style={{ color: "red", padding: "20px" }}>
         <h3>Error de conexión</h3>
-        <p>No se pudo conectar con el microservicio en: {api_url}</p>
+        <p>No se pudo conectar con la API en: {api_url}</p>
         <p>Error: {error instanceof Error ? error.message : "Error desconocido"}</p>
-        <p>Asegúrate de que el microservicio esté ejecutándose y acepte peticiones GET</p>
+        <p>Asegúrate de que el servidor está ejecutándose</p>
       </div>
     );
   }

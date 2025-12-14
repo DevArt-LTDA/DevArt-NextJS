@@ -1,9 +1,9 @@
 import ServerDataFetcher from "./serverFetcher";
 
-export default function UserApiPage() {
+export default function TransApiPage() {
   return (
     <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
-      <h1 style={{ marginBottom: "20px" }}>Usuarios desde el repositorio MicroSVTransacciones</h1>
+      <h1 style={{ marginBottom: "20px" }}>Historial de Transacciones Transbank</h1>
       <div style={{ 
         border: "1px solid #ddd", 
         borderRadius: "8px", 
