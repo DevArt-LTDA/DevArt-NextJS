@@ -43,7 +43,13 @@ export async function POST(request: Request) {
   }
 }
 
-async function updateTransaction(token: string, updateData: any) {
+async function updateTransaction(token: string, updateData: {
+  status: string;
+  responseCode: number;
+  authorizationCode?: string;
+  cardLastFourDigits?: string;
+  completedAt: string;
+}) {
   try {
     const MICROSERVICE_URL = 'https://microserviciotransacciones-production-9b80.up.railway.app/api/v1/transacciones';
     
@@ -52,7 +58,7 @@ async function updateTransaction(token: string, updateData: any) {
     const transactions = await getResponse.json();
     
     // Buscar la transacción que contiene este token en la descripción
-    const transaction = transactions.find((t: any) => 
+    const transaction = transactions.find((t: { descripcion?: string }) => 
       t.descripcion && t.descripcion.includes(token.substring(0, 20))
     );
     

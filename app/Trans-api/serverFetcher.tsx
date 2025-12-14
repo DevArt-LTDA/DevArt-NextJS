@@ -1,17 +1,13 @@
 "use server";
 
-type Transaccion = {
+type TransaccionMicroservicio = {
   id: number;
-  sessionId: string;
-  amount: number;
-  token: string;
-  url: string;
-  status: string;
-  responseCode?: string;
-  authorizationCode?: string;
-  cardLastFourDigits?: string;
-  createdAt: string;
-  updatedAt?: string;
+  usuarioRut: string;
+  tipo: string;
+  descripcion: string;
+  monto: number;
+  fecha: string;
+  aprobado: boolean;
 };
 
 export default async function ServerDataFetcher() {
@@ -50,7 +46,7 @@ export default async function ServerDataFetcher() {
       <div style={{ padding: "20px" }}>
         <h2 style={{ marginBottom: "20px" }}>Total de transacciones: {transacciones.length}</h2>
         <ul style={{ listStyle: "none", padding: "0" }}>
-          {transacciones.map((item: any) => (
+          {transacciones.map((item: TransaccionMicroservicio) => (
             <li key={item.id} style={{ 
               marginBottom: "15px", 
               padding: "15px", 
